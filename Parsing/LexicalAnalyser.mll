@@ -12,7 +12,7 @@
     | STATIC
     | THIS
     | TRUE
-    
+
   type SYMBOLE =
     | EOF
     | LPAREN
@@ -37,6 +37,10 @@
     | MOD
     | AND
     | OR
+    
+  type DATA = 
+    | BOOL of bool
+    | INT of int
     | IDENT of string
 
   let print_lexeme = function
@@ -131,24 +135,5 @@ rule nexttoken = parse
     match res with
     | EOF -> ()
     | _   -> examine_all lexbuf
-		    
-  let compile file =
-  print_string ("File "^file^" is being treated!\n");
-  try
-    let input_file = open_in file in
-    let lexbuf = Lexing.from_channel input_file in
-    try
-      examine_all lexbuf;
-      print_newline ();
-      close_in (input_file)
-    with 
-    | Error (kind,debut,fin) -> 
-       close_in (input_file);
-       report_error kind;
-       print_position debut fin;
-       print_newline()
-  with Sys_error s ->
-    print_endline ("Can't find file '" ^ file ^ "'")
-
-  let _ = Arg.parse [] compile ""
+  print_endline "end"
 }

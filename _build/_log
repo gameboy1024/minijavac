@@ -2,15 +2,25 @@
 # Target: Main/Main.ml.depends, tags: { extension:ml, file:Main/Main.ml, ocaml, ocamldep, quiet, traverse, use_menhir, warn_a }
 /usr/bin/ocamldep -modules Main/Main.ml > Main/Main.ml.depends # cached
 # Target: Main/Compile.ml.depends, tags: { extension:ml, file:Main/Compile.ml, ocaml, ocamldep, quiet, traverse, use_menhir, warn_a }
-/usr/bin/ocamldep -modules Main/Compile.ml > Main/Compile.ml.depends
+/usr/bin/ocamldep -modules Main/Compile.ml > Main/Compile.ml.depends # cached
+# Target: Parsing/LexicalAnalyser.mll, tags: { extension:mll, file:Parsing/LexicalAnalyser.mll, lexer, ocaml, ocamllex, quiet, traverse, use_menhir, warn_a }
+/usr/bin/ocamllex -q Parsing/LexicalAnalyser.mll # cached
+# Target: Parsing/LexicalAnalyser.ml.depends, tags: { extension:ml, file:Parsing/LexicalAnalyser.ml, ocaml, ocamldep, quiet, traverse, use_menhir, warn_a }
+/usr/bin/ocamldep -modules Parsing/LexicalAnalyser.ml > Parsing/LexicalAnalyser.ml.depends # cached
+# Target: Parsing/LexicalAnalyser.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:Parsing/LexicalAnalyser.cmo, file:Parsing/LexicalAnalyser.ml, implem, ocaml, quiet, traverse, use_menhir, warn_a }
+/usr/bin/ocamlc -c -w a -I Parsing -I Typing -I Evaluator -I Utils -I Main -I Compiling -o Parsing/LexicalAnalyser.cmo Parsing/LexicalAnalyser.ml # cached
+# Target: Main/Compile.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:Main/Compile.cmo, file:Main/Compile.ml, implem, ocaml, quiet, traverse, use_menhir, warn_a }
+/usr/bin/ocamlc -c -w a -I Main -I Typing -I Evaluator -I Utils -I Parsing -I Compiling -o Main/Compile.cmo Main/Compile.ml # cached
 # Target: Utils/Location.mli.depends, tags: { extension:mli, file:Utils/Location.mli, ocaml, ocamldep, quiet, traverse, use_menhir, warn_a }
 /usr/bin/ocamldep -modules Utils/Location.mli > Utils/Location.mli.depends # cached
 # Target: Utils/Location.cmi, tags: { byte, compile, extension:mli, file:Utils/Location.mli, interf, ocaml, quiet, traverse, use_menhir, warn_a }
 /usr/bin/ocamlc -c -w a -I Utils -I Typing -I Evaluator -I Parsing -I Main -I Compiling -o Utils/Location.cmi Utils/Location.mli # cached
-# Target: Main/Compile.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:Main/Compile.cmo, file:Main/Compile.ml, implem, ocaml, quiet, traverse, use_menhir, warn_a }
-/usr/bin/ocamlc -c -w a -I Main -I Typing -I Evaluator -I Utils -I Parsing -I Compiling -o Main/Compile.cmo Main/Compile.ml
-+ /usr/bin/ocamlc -c -w a -I Main -I Typing -I Evaluator -I Utils -I Parsing -I Compiling -o Main/Compile.cmo Main/Compile.ml
-File "Main/Compile.ml", line 5, characters 2-17:
-Error: Unbound constructor LexicalAnalyser
-Command exited with code 2.
-# Compilation unsuccessful.
+# Target: Main/Main.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:Main/Main.cmo, file:Main/Main.ml, implem, ocaml, quiet, traverse, use_menhir, warn_a }
+/usr/bin/ocamlc -c -w a -I Main -I Typing -I Evaluator -I Utils -I Parsing -I Compiling -o Main/Main.cmo Main/Main.ml # cached
+# Target: Utils/Location.ml.depends, tags: { extension:ml, file:Utils/Location.ml, ocaml, ocamldep, quiet, traverse, use_menhir, warn_a }
+/usr/bin/ocamldep -modules Utils/Location.ml > Utils/Location.ml.depends # cached
+# Target: Utils/Location.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:Utils/Location.cmo, file:Utils/Location.ml, implem, ocaml, quiet, traverse, use_menhir, warn_a }
+/usr/bin/ocamlc -c -w a -I Utils -I Typing -I Evaluator -I Parsing -I Main -I Compiling -o Utils/Location.cmo Utils/Location.ml # cached
+# Target: Main/Main.byte, tags: { byte, dont_link_with, extension:byte, file:Main/Main.byte, link, ocaml, program, quiet, traverse, use_menhir, warn_a }
+/usr/bin/ocamlc Parsing/LexicalAnalyser.cmo Main/Compile.cmo Utils/Location.cmo Main/Main.cmo -o Main/Main.byte # cached
+# Compilation successful.

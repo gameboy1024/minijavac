@@ -2,4 +2,4 @@
 let execute lexbuf verbose = 
   print_endline "parsing todo";
   print_endline("verbose=" ^ string_of_bool(verbose));
-  LexicalAnalyser
+  LexicalAnalyser.examine_all lexbuf
