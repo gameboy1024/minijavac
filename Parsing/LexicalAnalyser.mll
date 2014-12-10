@@ -20,11 +20,11 @@
     | LBRACE
     | RBRACE
     | SEMICOLON
-    | EQ
+    | ASSIGN
     | COMMA
     | PERIOD
     | INTERRO
-    | DASH
+    | MINUS
     | LT
     | GT
     | LE
@@ -42,15 +42,57 @@
     | BOOL of bool
     | INT of int
     | IDENT of string
+    
+  type COMMENT = 
+    | INLINECOMMENT of string 
+    | MULLINECOMMENT of string
 
-  let print_lexeme = function
-    | EOF     -> print_string "EOF"
-    | PLUS    -> print_string "PLUS"
-    | MINUS   -> print_string "MINUS"
-    | DIV     -> print_string "DIV"
-    | TIMES   -> print_string "TIMES"
-    | FLOAT f -> print_string "FLOAT("; print_float f; print_string ")"
-    | IDENT s -> print_string "IDENT("; print_string s; print_string ")"
+  let print_element = function
+    | EOF       -> print_string "EOF"
+    | LPAREN    -> print_string "LPAREN"
+    | RPAREN    -> print_string "RPAREN"
+    | LBRACE    -> print_string "LBRACE"
+    | RBRACE    -> print_string "RBRACE"
+    | SEMICOLON -> print_string "SEMICOLON"
+    | ASSIGN    -> print_string "ASSIGN"
+    | COMMA     -> print_string "COMMA"
+    | PERIOD    -> print_string "PERIOD"
+    | INTERRO   -> print_string "INTERRO"
+    | MINUS     -> print_string "MINUS"
+    | LT        -> print_string "LT"
+    | GT        -> print_string "GT"
+    | LE        -> print_string "LE"
+    | GE        -> print_string "TRUE"
+    | NE        -> print_string "GE"
+    | EQ        -> print_string "EQ"
+    | PLUS      -> print_string "PLUS"
+    | MULTI     -> print_string "MULTI"
+    | DIV       -> print_string "DIV"
+    | MOD       -> print_string "MOD"
+    | AND       -> print_string "AND"
+    | OR        -> print_string "OR"
+
+    | FLOAT f   -> print_string "FLOAT("; print_float f; print_string ")"
+    | IDENT s   -> print_string "IDENT("; print_string s; print_string ")"
+    | CLASS     -> print_string "CLASS"
+    | ELSE      -> print_string "ELSE"
+    | EXTENDS   -> print_string "EXTENDS"
+    | FALSE     -> print_string "FALSE"
+    | IF        -> print_string "IF"
+    | IN        -> print_string "IN"
+    | INSTANCEOF-> print_string "INSTANCEOF"
+    | NEW       -> print_string "NEW"
+    | NULL      -> print_string "NULL"
+    | STATIC    -> print_string "STATIC"
+    | THIS      -> print_string "THIS"
+    | TRUE      -> print_string "TRUE"
+    
+    | BOOL b    -> print_string "BOOL("; print_string string_of_bool b; print_string ")"
+    | INT i     -> print_string "INT("; print_int i; print_string ")"
+    | IDENT s   -> print_string "IDENT("; print_int s; print_string ")"
+    
+    | INLINECOMMENT ic -> print_string "INLINECOMMENT("; print_int ic; print_string ")"
+    | MULLINECOMMENT mc-> print_string "MULLINECOMMENT("; print_int mc; print_string ")"
 
   open Lexing
   exception Eof
