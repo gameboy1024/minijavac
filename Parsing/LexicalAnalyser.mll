@@ -42,6 +42,8 @@
     | BOOL of bool
     | INT of int
     | IDENT of string
+    | VAR of string
+    | TYPE of string
 
   let print_lexeme = function
     | EOF     -> print_string "EOF"
@@ -57,7 +59,7 @@
 
   type error =
     | Illegal_character of char
-    | Illegal_float of string
+    | Illegal_int of string
   exception Error of error * position * position
 
   let raise_error err lexbuf =
@@ -69,8 +71,8 @@
 	print_string "Illegal character '";
 	print_char c;
 	print_string "' "
-    | Illegal_float nb ->
-	print_string "The float ";
+    | Illegal_int nb ->
+	print_string "The int ";
 	print_string nb;
 	print_string " is illegal "
 
@@ -107,25 +109,63 @@
 
 }
 
-let letter = ['a'-'z' 'A'-'Z']
+let l_letter = ['a'-'z']
+let b_letter = ['A'-'Z']
+let letter = l_letter | b_letter
 let digit = ['0'-'9']
-let real = digit* ('.' digit*)?
-let ident = letter (letter | digit | '_')*
+let integer = digit+
+let boolean = "true" | "false"
+let type_name = b_letter (letter)*
+let var_name = l_letter (letter | digit | '_')*
 let newline = ('\010' | '\013' | "\013\010")
 let blank = [' ' '\009']
 
-rule nexttoken = parse
-  | newline       { incr_line lexbuf; nexttoken lexbuf }
-  | blank+        { nexttoken lexbuf }
-  | eof           { EOF }
-  | "+"           { PLUS } 
-  | "-"           { MINUS } 
-  | "/"           { DIV } 
-  | "*"           { TIMES } 
-  | real as nb    { try FLOAT (float_of_string nb) with Failure "float_of_string" -> raise_error (Illegal_float(nb)) lexbuf }
-  | ident as str  { IDENT str }
-  | _ as c        { raise_error (Illegal_character(c)) lexbuf }
+let inline_comment = "//" .*
+let mulline_comment = "/*" (.|newline)* "*/"
 
+rule nexttoken = parse
+  | newline           { incr_line lexbuf; nexttoken lexbuf }
+  | blank+            { nexttoken lexbuf }
+  | eof               { EOF }
+  | inline_comment    { INLINECOMMENT str}
+  | mulline_comment   { MULLINECOMMENT str}
+  | "class"           { CLASS }
+  | "else"            { ELSE }
+  | "extends"         { EXTENDS }
+  | boolean           { BOOL (bool_of_string bl)  }
+  | "if"              { IF }
+  | "in"              { IN }
+  | "instanceof"      { INSTANCEOF }
+  | "new"             { NEW }
+  | "null"            { NULL }
+  | "static"          { STATIC }
+  | "this"            { THIS }
+  | "("               { LPAREN }
+  | ")"               { RPAREN }
+  | "{"               { LBRACE }
+  | "}"               { RBRACE }
+  | ";"               { SEMICOLON }
+  | "="               { ASSIGN }
+  | ","               { COMMA }
+  | "."               { PERIOD }
+  | "!"               { INTERRO }
+  | "<"               { LT }
+  | ">"               { GT }
+  | "<="              { LE }
+  | ">="              { GE }
+  | "!="              { NE }
+  | "=="              { EQ }
+  | "+"               { PLUS }
+  | "-"               { MINUS }
+  | "*"               { MULTI }
+  | "/"               { DIV }
+  | "%"               { MOD }
+  | "&&"              { AND }
+  | "||"              { OR }
+  | integer as nb     { try INT (int_of_string nb) with Failure "int_of_string" -> raise_error (Illegal_int(nb)) lexbuf }
+  | type_name as str  { TYPE str }
+  | var_name as str   { VAR str }
+  | _ as c            { raise_error (Illegal_character(c)) lexbuf }
 
 {
   let rec examine_all lexbuf =
@@ -135,5 +175,5 @@ rule nexttoken = parse
     match res with
     | EOF -> ()
     | _   -> examine_all lexbuf
-  print_endline "end"
+  print_endline "parser finished!"
 }
