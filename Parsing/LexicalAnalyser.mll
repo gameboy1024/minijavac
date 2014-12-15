@@ -13,7 +13,9 @@
     | THIS
     | TRUE
 
+(*
   type SYMBOLE =
+*)
     | EOF
     | LPAREN
     | RPAREN
@@ -24,7 +26,6 @@
     | COMMA
     | PERIOD
     | INTERRO
-    | MINUS
     | LT
     | GT
     | LE
@@ -32,24 +33,30 @@
     | NE
     | EQ
     | PLUS
+    | MINUS
     | MULTI
     | DIV
     | MOD
     | AND
     | OR
     
+(*
   type DATA = 
+*)
     | BOOL of bool
     | INT of int
     | VAR of string
     | TYPE of string
     
-  type COMMENT = 
+(*
+type COMMENT = 
+*)
     | INLINECOMMENT of string 
     | MULLINECOMMENT of string
 
-  let print_element = function
+let print_element = function
     | EOF       -> print_string "EOF"
+    | CLASS     -> print_string "CLASS"
     | LPAREN    -> print_string "LPAREN"
     | RPAREN    -> print_string "RPAREN"
     | LBRACE    -> print_string "LBRACE"
@@ -72,10 +79,8 @@
     | MOD       -> print_string "MOD"
     | AND       -> print_string "AND"
     | OR        -> print_string "OR"
-
-    | FLOAT f   -> print_string "FLOAT("; print_float f; print_string ")"
-    | IDENT s   -> print_string "IDENT("; print_string s; print_string ")"
-    | CLASS     -> print_string "CLASS"
+    
+    | TYPE s    -> print_string "TYPE("; print_string s; print_string ")"
     | ELSE      -> print_string "ELSE"
     | EXTENDS   -> print_string "EXTENDS"
     | FALSE     -> print_string "FALSE"
@@ -88,12 +93,12 @@
     | THIS      -> print_string "THIS"
     | TRUE      -> print_string "TRUE"
     
-    | BOOL b    -> print_string "BOOL("; print_string string_of_bool b; print_string ")"
+    | BOOL b    -> print_string "BOOL("; print_string (string_of_bool b); print_string ")"
     | INT i     -> print_string "INT("; print_int i; print_string ")"
-    | IDENT s   -> print_string "IDENT("; print_int s; print_string ")"
+    | VAR s   -> print_string "VAR("; print_string s; print_string ")"
     
-    | INLINECOMMENT ic -> print_string "INLINECOMMENT("; print_int ic; print_string ")"
-    | MULLINECOMMENT mc-> print_string "MULLINECOMMENT("; print_int mc; print_string ")"
+    | INLINECOMMENT ic -> print_string "INLINECOMMENT("; print_string ic; print_string ")"
+    | MULLINECOMMENT mc-> print_string "MULLINECOMMENT("; print_string mc; print_string ")"
 
   open Lexing
   exception Eof
@@ -161,60 +166,59 @@ let var_name = l_letter (letter | digit | '_')*
 let newline = ('\010' | '\013' | "\013\010")
 let blank = [' ' '\009']
 
-let inline_comment = "//" .*
-let mulline_comment = "/*" (.|newline)* "*/"
+let inline_comment = "//" _*
+let mulline_comment = "/*" (_|newline)* "*/"
 
 rule nexttoken = parse
-  | newline           { incr_line lexbuf; nexttoken lexbuf }
-  | blank+            { nexttoken lexbuf }
-  | eof               { EOF }
-  | inline_comment    { INLINECOMMENT str}
-  | mulline_comment   { MULLINECOMMENT str}
-  | "class"           { CLASS }
-  | "else"            { ELSE }
-  | "extends"         { EXTENDS }
-  | boolean           { BOOL (bool_of_string bl)  }
-  | "if"              { IF }
-  | "in"              { IN }
-  | "instanceof"      { INSTANCEOF }
-  | "new"             { NEW }
-  | "null"            { NULL }
-  | "static"          { STATIC }
-  | "this"            { THIS }
-  | "("               { LPAREN }
-  | ")"               { RPAREN }
-  | "{"               { LBRACE }
-  | "}"               { RBRACE }
-  | ";"               { SEMICOLON }
-  | "="               { ASSIGN }
-  | ","               { COMMA }
-  | "."               { PERIOD }
-  | "!"               { INTERRO }
-  | "<"               { LT }
-  | ">"               { GT }
-  | "<="              { LE }
-  | ">="              { GE }
-  | "!="              { NE }
-  | "=="              { EQ }
-  | "+"               { PLUS }
-  | "-"               { MINUS }
-  | "*"               { MULTI }
-  | "/"               { DIV }
-  | "%"               { MOD }
-  | "&&"              { AND }
-  | "||"              { OR }
-  | integer as nb     { try INT (int_of_string nb) with Failure "int_of_string" -> raise_error (Illegal_int(nb)) lexbuf }
-  | type_name as str  { TYPE str }
-  | var_name as str   { VAR str }
-  | _ as c            { raise_error (Illegal_character(c)) lexbuf }
+  | newline               { incr_line lexbuf; nexttoken lexbuf }
+  | blank+                { nexttoken lexbuf }
+  | eof                   { EOF }
+  | inline_comment as c   { INLINECOMMENT c}
+  | mulline_comment as c  { MULLINECOMMENT c}
+  | "class"               { CLASS }
+  | "else"                { ELSE }
+  | "extends"             { EXTENDS }
+  | boolean as bl         { BOOL (bool_of_string bl)  }
+  | "if"                  { IF }
+  | "in"                  { IN }
+  | "instanceof"          { INSTANCEOF }
+  | "new"                 { NEW }
+  | "null"                { NULL }
+  | "static"              { STATIC }
+  | "this"                { THIS }
+  | "("                   { LPAREN }
+  | ")"                   { RPAREN }
+  | "{"                   { LBRACE }
+  | "}"                   { RBRACE }
+  | ";"                   { SEMICOLON }
+  | "="                   { ASSIGN }
+  | ","                   { COMMA }
+  | "."                   { PERIOD }
+  | "!"                   { INTERRO }
+  | "<"                   { LT }
+  | ">"                   { GT }
+  | "<="                  { LE }
+  | ">="                  { GE }
+  | "!="                  { NE }
+  | "=="                  { EQ }
+  | "+"                   { PLUS }
+  | "-"                   { MINUS }
+  | "*"                   { MULTI }
+  | "/"                   { DIV }
+  | "%"                   { MOD }
+  | "&&"                  { AND }
+  | "||"                  { OR }
+  | integer as nb         { try INT (int_of_string nb) with Failure "int_of_string" -> raise_error (Illegal_int(nb)) lexbuf }
+  | type_name as str      { TYPE str }
+  | var_name as str       { VAR str }
+  | _ as c                { raise_error (Illegal_character(c)) lexbuf }
 
 {
   let rec examine_all lexbuf =
     let res = nexttoken lexbuf in
-    print_lexeme res;
+    print_element res;
     print_string " ";
     match res with
     | EOF -> ()
     | _   -> examine_all lexbuf
-  print_endline "parser finished!"
 }
