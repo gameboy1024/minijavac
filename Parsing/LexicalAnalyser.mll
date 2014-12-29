@@ -166,8 +166,8 @@ let var_name = l_letter (letter | digit | '_')*
 let newline = ('\010' | '\013' | "\013\010")
 let blank = [' ' '\009']
 
-let inline_comment = "//" _*
-let mulline_comment = "/*" (_|newline)* "*/"
+let inline_comment = "//" [^'\n']*
+let mulline_comment = "/*" [^'/']* "*/"
 
 rule nexttoken = parse
   | newline               { incr_line lexbuf; nexttoken lexbuf }

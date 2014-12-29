@@ -1,0 +1,16 @@
+/* 
+This is a file that contains the whole alphabet of the minijava language.
+MiniJava project.
+*/
+
+// Keywords
+class else extends false if in instanceof new null static this true
+
+// Symbols
+( ) { } ; = , . ! - < > <= >= != == + * / % && ||
+
+// Types
+Boolean Int String
+
+// Name
+TypeName varName

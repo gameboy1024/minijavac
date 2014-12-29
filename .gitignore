@@ -7,5 +7,5 @@
 *.cmx
 *.cmxs
 *.cmxa
-_build/
+_build
 *.byte
