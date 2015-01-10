@@ -1,58 +1,5 @@
 {
-  type keyword =
-    | CLASS
-    | ELSE
-    | EXTENDS
-    | FALSE
-    | IF
-    | IN
-    | INSTANCEOF
-    | NEW
-    | NULL
-    | STATIC
-    | THIS
-    | TRUE
-
-(*
-  type SYMBOLE =
-*)
-    | EOF
-    | LPAREN
-    | RPAREN
-    | LBRACE
-    | RBRACE
-    | SEMICOLON
-    | ASSIGN
-    | COMMA
-    | PERIOD
-    | INTERRO
-    | LT
-    | GT
-    | LE
-    | GE
-    | NE
-    | EQ
-    | PLUS
-    | MINUS
-    | MULTI
-    | DIV
-    | MOD
-    | AND
-    | OR
-    
-(*
-  type DATA = 
-*)
-    | BOOL of bool
-    | INT of int
-    | VAR of string
-    | TYPE of string
-    
-(*
-type COMMENT = 
-*)
-    | INLINECOMMENT of string 
-    | MULLINECOMMENT of string
+  open SyntaxAnalyser
 
 let print_element = function
     | EOF       -> print_string "EOF"
@@ -64,14 +11,14 @@ let print_element = function
     | SEMICOLON -> print_string "SEMICOLON"
     | ASSIGN    -> print_string "ASSIGN"
     | COMMA     -> print_string "COMMA"
-    | PERIOD    -> print_string "PERIOD"
-    | INTERRO   -> print_string "INTERRO"
+    | DOT    -> print_string "DOT"
+    | NOT   	-> print_string "NOT"
     | MINUS     -> print_string "MINUS"
     | LT        -> print_string "LT"
     | GT        -> print_string "GT"
     | LE        -> print_string "LE"
-    | GE        -> print_string "TRUE"
-    | NE        -> print_string "GE"
+    | GE        -> print_string "GE"
+    | NE        -> print_string "NE"
     | EQ        -> print_string "EQ"
     | PLUS      -> print_string "PLUS"
     | MULTI     -> print_string "MULTI"
@@ -193,8 +140,8 @@ rule nexttoken = parse
   | ";"                   { SEMICOLON }
   | "="                   { ASSIGN }
   | ","                   { COMMA }
-  | "."                   { PERIOD }
-  | "!"                   { INTERRO }
+  | "."                   { DOT }
+  | "!"                   { NOT }
   | "<"                   { LT }
   | ">"                   { GT }
   | "<="                  { LE }
@@ -215,7 +162,7 @@ rule nexttoken = parse
 
 {
   let rec examine_all lexbuf =
-    let res = nexttoken lexbuf in
+    let res = expressions nexttoken lexbuf in
     print_element res;
     print_string " ";
     match res with
