@@ -160,6 +160,7 @@ rule nexttoken = parse
   | var_name as str       { VAR str }
   | _ as c                { raise_error (Illegal_character(c)) lexbuf }
 
+(*
 {
   let rec examine_all lexbuf =
     let res = expressions nexttoken lexbuf in
@@ -168,4 +169,4 @@ rule nexttoken = parse
     match res with
     | EOF -> ()
     | _   -> examine_all lexbuf
-}
+}*)
