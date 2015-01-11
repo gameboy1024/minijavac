@@ -22,6 +22,7 @@
 /* Literal values */
 %token <int> INT
 %token <bool> BOOL
+%token <string> STRING
 %token TRUE FALSE
 
 /* Identifiers */
@@ -29,7 +30,7 @@
 
 		     
 /* Declaration of variables */
-%token <string> TYPE
+%token <Expression.type_> TYPE
 
 /* Comments */
 %token <string> INLINECOMMENT
@@ -50,8 +51,8 @@
 /******************************/
 /* Entry points of the parser */
 /******************************/
-%start expressions
-%type < Expression.expression list > expressions
+%start file_content
+%type < Expression.expression list > file_content
 
 
 %%
@@ -59,31 +60,77 @@
 /* The rules */
 /*************/
 
-expressions:
- | e=expr EOL* EOF               { [e] }
- | e=expr EOL+ rest=expressions   { e::rest }
+file_content:
+ | e=class_or_expression EOL* EOF               { [e] }
+ | e=class_or_expression EOL+ rest=file_content   { e::rest }
+
+class_or_expression:
+  (*| class_body { $1 }*)
+  | expr { $1 }
+  (*
+class_body:
+  | CLASS TYPE LBRACE (attribute_or_method)* RBRACE { $1} *)
+  (*
+attribute_or_method:
+  | attribute 
+      { $1 }
+  | method_ 
+      { $1 }
+  
+attribute:
+  | STATIC? t=TYPE id=VAR (ASSIGN e=expr)? SEMICOLON 
+      {Attribute(t, id, e)}
+
+method_:
+  | STATIC? t=TYPE id=VAR LPAREN p?=params RPAREN LBRACE e=expr RBRACE
+      {Method(t, id, p, e)}
+  *)
+params:
+  | t=TYPE id=VAR { [t, id] }
+  | t=TYPE id=VAR COMMA rest=args { [t, id]::rest }
 
 expr:
   | LPAREN e=expr RPAREN
       { e }
-  | NOT e=expr
-      { Unop(Unot,e) }
-  | MINUS e=expr %prec UMINUS
-      { Unop(Uminus,e)}
-  | e1=expr o=bop e2=expr
-      { Binop(o,e1,e2)}
   | id=VAR
       { Var id }
   | i=INT
       { Int i }
-  | TRUE
-      { Bool true }
-  | FALSE
-      { Bool false }
+  | s=STRING
+      { String s }
+  | NULL
+      { Null }
+  | b=BOOL
+      { Bool b }
+  | NOT e=expr
+      { Unop(Unot,e) }
+  | MINUS e=expr %prec UMINUS
+      { Unop(Uminus,e) }
+  | e1=expr o=bop e2=expr
+      { Binop(o,e1,e2) }
+  | id=VAR ASSIGN e=expr
+      { Assign(id, e) }
+  | t=TYPE id=VAR ASSIGN e1=expr IN e2=expr
+      { Def(t, id, e1, e2) }
+  | IF LPAREN cond=expr RPAREN LBRACE eif=expr RBRACE ELSE LBRACE eelse=expr RBRACE
+      { Ifelse(cond, eif, eelse) }
+  | e=expr DOT mthd=VAR LPAREN args=args RPAREN
+      { Invoke(e, mthd, args) }
+  | NEW t=TYPE
+      { New(t) }
+  | LPAREN t=TYPE RPAREN e=expr
+      { Cast(t, e) }
+  | e=expr INSTANCEOF t=TYPE
+      { Instanceof(e, t) }
+
+args:
+  | e=expr { [e] }
+  | e=expr COMMA rest=args { e::rest }
+
 
 %inline bop:
-  | MINUS     { Bsub }
   | PLUS      { Badd }
+  | MINUS     { Bsub }
   | MULTI     { Bmul }
   | DIV       { Bdiv }
   | MOD       { Bmod }
@@ -94,6 +141,6 @@ expr:
   | LT        { Blt }
   | LE        { Ble }
   | EQ        { Beq }
-  | NE       { Bneq }
+  | NE        { Bneq }
   
 %%

@@ -6,7 +6,7 @@ let treat_expression exp =
   print_string (string_of_expr exp);
   print_string " = ";
   try
-    print_string (string_of_value (eval [] exp));
+    (*print_string (string_of_value (eval [] exp));*)
     print_newline()
   with Unbound_variable s ->
     print_endline ("Variable "^s^" inconnue!")
@@ -26,5 +26,5 @@ let execute lexbuf verbose =
   print_endline("verbose=" ^ string_of_bool(verbose));
   (*LexicalAnalyser.examine_all lexbuf*)
   
-  let exp_list = expressions nexttoken lexbuf in
+  let exp_list = file_content nexttoken lexbuf in
     List.iter treat_expression exp_list

@@ -42,7 +42,8 @@ let print_element = function
     
     | BOOL b    -> print_string "BOOL("; print_string (string_of_bool b); print_string ")"
     | INT i     -> print_string "INT("; print_int i; print_string ")"
-    | VAR s   -> print_string "VAR("; print_string s; print_string ")"
+    | STRING s  -> print_string "STRING("; print_string s; print_string ")"
+    | VAR s     -> print_string "VAR("; print_string s; print_string ")"
     
     | INLINECOMMENT ic -> print_string "INLINECOMMENT("; print_string ic; print_string ")"
     | MULLINECOMMENT mc-> print_string "MULLINECOMMENT("; print_string mc; print_string ")"
@@ -108,6 +109,7 @@ let letter = l_letter | b_letter
 let digit = ['0'-'9']
 let integer = digit+
 let boolean = "true" | "false"
+let string = '"' _* '"'
 let type_name = b_letter (letter)*
 let var_name = l_letter (letter | digit | '_')*
 let newline = ('\010' | '\013' | "\013\010")

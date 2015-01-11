@@ -6,14 +6,24 @@ type binop =
 type unop =
   | Unot | Uminus
 
+
+type type_ =
+  | Type of string
+  
 type expression =
   | Bool of bool
   | Int of int
   | Var of string
-  | Def of string * expression * expression
+  | String of string
+  | Def of string * string * expression * expression
   | Binop of binop * expression * expression
   | Unop of unop * expression
-
+  | Null
+  | Assign of string * expression
+  | Ifelse of expression * expression * expression
+  | Instanceof of expression * type_
+  
+  
 type value =
   | Vbool of bool
   | Vint of int
@@ -42,16 +52,16 @@ let get_op_b op x y =
   | Band, Vbool x, Vbool y -> Vbool(x && y)
   | Bor, Vbool x, Vbool y -> Vbool(x || y)
   | _ -> failwith "bug:type error not catched"
-
+(*
 let rec eval env exp =
   match exp with
   | Bool b -> Vbool b
   | Int i -> Vint i
-  | Def(v,e1,e2) -> eval ((v,eval env e1)::env) e2
+  | Def(v1, v2, e1,e2) -> eval ((v1, v2, eval env e1)::env) e2
   | Var v -> (try List.assoc v env with Not_found -> failwith "bug:type error not catched")
   | Binop(op,e1,e2) -> (get_op_b op) (eval env e1) (eval env e2)
   | Unop(op,e) -> (get_op_u op) (eval env e)
-
+*)
 let string_type_of_value = function
   | Vbool _ -> "bool"
   | Vint _  -> "int"
@@ -95,7 +105,7 @@ let rec string_of_expr exp =
   | Bool false -> "false"
   | Int i -> string_of_int i
   | Var v -> v
-  | Def(v, e1, e2) -> v^"="^(string_of_expr e1)^" in "^(string_of_expr e2)
+  | Def(v1,v2, e1, e2) -> v1 ^ v2 ^"="^(string_of_expr e1)^" in "^(string_of_expr e2)
   | Binop(op, e1, e2) -> 
       "("^(string_of_expr e1)^(string_of_op_b op)^(string_of_expr e2)^")"
   | Unop(op, e) -> "("^(string_of_op_u op)^(string_of_expr e)^")"
@@ -136,9 +146,9 @@ let rec typing env exp =
   | Bool _ -> Tbool
   | Int _ -> Tint
   | Var v -> (try List.assoc v env with Not_found -> raise(Unbound_variable v))
-  | Def(v,e1,e2) ->
+  | Def(v1, v2,e1,e2) ->
      let t1 = typing env e1 in
-     typing ((v,t1)::env) e2
+     typing ((v1,t1)::env) e2
   | Binop(op,e1,e2) ->
      let t1 = typing env e1 in
      let t2 = typing env e2 in
