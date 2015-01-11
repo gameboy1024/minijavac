@@ -6,14 +6,13 @@ type binop =
 type unop =
   | Unot | Uminus
 
-type type_ =
-  | Type of string
-  
 type expression =
-  | Bool of bool
+  | NoExp 
+  | ExpList of expression * expression
   | Int of int
   | Var of string
   | Null
+  | Bool of bool
   | This
   | String of string
   | Def of string * string * expression * expression
@@ -21,14 +20,38 @@ type expression =
   | Binop of binop * expression * expression  
   | Assign of string * expression
   | Ifelse of expression * expression * expression
+  | New of string 
   | Instanceof of expression * string
   | Cast of string * expression
-  | New of string
   | Invoke of expression * string * expression list
 
+type params =
+  | NoParam
+  | Param of string * string
+  | Params of params * params
+ 
+type attr =
+  | Attribute of string * string * expression 
+
+type meth = 
+  | Method of string * string * params * expression 
+  
+type attrormeth = 
+  | Attr of attr 
+  | Meth of meth
+
+type class_ =
+  | Class_ of string * string * attrormeth
+  
+type classorexpr = 
+  | Class of class_ 
+  | Expr of expression
+  
 type value =
   | Vbool of bool
   | Vint of int
+  
+
 		     
 exception Unbound_variable of string
 
@@ -54,8 +77,6 @@ let get_op_b op x y =
   | Band, Vbool x, Vbool y -> Vbool(x && y)
   | Bor, Vbool x, Vbool y -> Vbool(x || y)
   | _ -> failwith "bug:type error not catched"
-(*
-let rec eval env exp =
   match exp with
   | Bool b -> Vbool b
   | Int i -> Vint i
@@ -63,7 +84,8 @@ let rec eval env exp =
   | Var v -> (try List.assoc v env with Not_found -> failwith "bug:type error not catched")
   | Binop(op,e1,e2) -> (get_op_b op) (eval env e1) (eval env e2)
   | Unop(op,e) -> (get_op_u op) (eval env e)
-*)
+  *)
+
 let string_type_of_value = function
   | Vbool _ -> "bool"
   | Vint _  -> "int"
@@ -103,15 +125,13 @@ let string_of_op_b = function
 
 let rec string_of_expr exp =
   match exp with
-  | Bool true -> "true"
-  | Bool false -> "false"
+  | NoExp -> ""
+  | ExpList(e,l) -> string_of_expr e ; print_string "," ; string_of_expr l
   | Int i -> string_of_int i
   | Var v -> v
   | Null -> "null"
   | Bool true -> "true"
   | Bool false -> "false"
-  | Int i -> string_of_int i
-  | Var v -> v
   | This -> "this"
   | String s -> s
   | Unop(op, e) -> "("^(string_of_op_u op)^(string_of_expr e)^")"
@@ -125,6 +145,32 @@ let rec string_of_expr exp =
   | New t -> "new"
   *)
 
+  | Invoke(e, s, l) -> (string_of_expr e)^"."^s^"("^(string_of_expr l)^")"
+  | New s -> "new "^s 
+  
+  
+let rec string_of_params = function
+  | NoParam -> ""
+  | Param(s1,s2) ->  s1^" "^s2
+  | Params (p,l) -> string_of_params p; print_string "," ; string_of_params l
+    
+let string_of_attr = function
+  | Attribute(s1,s2,e) -> s1^" "^s2^" ="^(string_of_expr e)^";"
+  
+let string_of_meth = function
+  | Method(s1,s2,p,e) -> s1^" "^s2^"("^(string_of_params p)^") {"^(string_of_expr e)^"}"
+  
+let string_of_attrormeth = function 
+  | Attr a -> string_of_attr a
+  | Meth m -> string_of_meth m
+  
+let string_of_class_ = function
+  | Class_(s1,s2,aom) -> "class"^s1^"(extends "^s2^") { "^(string_of_attrormeth aom)^" }" 
+  
+let string_of_classorexpr = function
+  | Class c -> string_of_class_ c
+  | Expr e -> string_of_expr  e
+      
 type typ = Tbool | Tint
 exception Wrong_types_bop of binop * typ * typ
 exception Wrong_types_uop of unop * typ
@@ -171,4 +217,3 @@ let rec typing env exp =
   | Unop(op,e) -> 
      let t = typing env e in
      get_op_u_type op t
-
