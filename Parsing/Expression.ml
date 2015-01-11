@@ -7,6 +7,8 @@ type unop =
   | Unot | Uminus
 
 type expression =
+  | NoExp 
+  | ExpList of expression * expression
   | Int of int
   | Var of string
   | Null
@@ -18,16 +20,35 @@ type expression =
   | Assign of string * expression
   | Def of string * expression * expression
   | Ifelse of expression * expression * expression
-  (*
-  | Invoke of expression * expression list
-  | New of type
-  *)
+  | Invoke of expression * string * expression
+  | New of string 
+
+type params =
+  | NoParam
+  | Param of string * string
+  | Params of params * params
+ 
+type attr =
+  | Attribute of string * string * expression 
+
+type meth = 
+  | Method of string * string * params * expression 
+  
+type attrormeth = 
+  | Attr of attr 
+  | Meth of meth
+
+type class_ =
+  | Class_ of string * string * attrormeth
+  
+type classorexpr = 
+  | Class of class_ 
+  | Expr of expression
+  
 type value =
   | Vbool of bool
   | Vint of int
-  
-
-		     
+  		     
 exception Unbound_variable of string
 
 let get_op_u op x = 
@@ -117,8 +138,11 @@ let string_of_op_b = function
   | Beq -> "="
   | Bneq -> "!="
 
+
 let rec string_of_expr exp =
   match exp with
+  | NoExp -> ""
+  | ExpList(e,l) -> string_of_expr e ; print_string "," ; string_of_expr l
   | Int i -> string_of_int i
   | Var v -> v
   | Null -> "null"
@@ -132,10 +156,32 @@ let rec string_of_expr exp =
   | Assign(s,e) -> s^"="^(string_of_expr e)
   | Def(v, e1, e2) -> v^"="^(string_of_expr e1)^" in "^(string_of_expr e2)
   | Ifelse(e1,e2,e3) -> "if("^(string_of_expr e1)^") { "^(string_of_expr e2 )^" }else{ "^(string_of_expr e3)^"}"
- (* | Invoke(e, args) -> (string_of_expr e)^"."^(string_of_expr args)
-  | New t -> "new"
-  *)
-
+  | Invoke(e, s, l) -> (string_of_expr e)^"."^s^"("^(string_of_expr l)^")"
+  | New s -> "new "^s 
+  
+  
+let rec string_of_params = function
+  | NoParam -> ""
+  | Param(s1,s2) ->  s1^" "^s2
+  | Params (p,l) -> string_of_params p; print_string "," ; string_of_params l
+    
+let string_of_attr = function
+  | Attribute(s1,s2,e) -> s1^" "^s2^" ="^(string_of_expr e)^";"
+  
+let string_of_meth = function
+  | Method(s1,s2,p,e) -> s1^" "^s2^"("^(string_of_params p)^") {"^(string_of_expr e)^"}"
+  
+let string_of_attrormeth = function 
+  | Attr a -> string_of_attr a
+  | Meth m -> string_of_meth m
+  
+let string_of_class_ = function
+  | Class_(s1,s2,aom) -> "class"^s1^"(extends "^s2^") { "^(string_of_attrormeth aom)^" }" 
+  
+let string_of_classorexpr = function
+  | Class c -> string_of_class_ c
+  | Expr e -> string_of_expr  e
+      
 type typ = Tbool | Tint
 exception Wrong_types_bop of binop * typ * typ
 exception Wrong_types_uop of unop * typ
