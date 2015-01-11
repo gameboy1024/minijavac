@@ -7,16 +7,26 @@ type unop =
   | Unot | Uminus
 
 type expression =
-  | Bool of bool
   | Int of int
   | Var of string
-  | Def of string * expression * expression
-  | Binop of binop * expression * expression
+  | Null
+  | Bool of bool
+  | This
+  | String of string
   | Unop of unop * expression
-
+  | Binop of binop * expression * expression  
+  | Assign of string * expression
+  | Def of string * expression * expression
+  | Ifelse of expression * expression * expression
+  (*
+  | Invoke of expression * expression list
+  | New of type
+  *)
 type value =
   | Vbool of bool
   | Vint of int
+  
+
 		     
 exception Unbound_variable of string
 
@@ -42,8 +52,25 @@ let get_op_b op x y =
   | Band, Vbool x, Vbool y -> Vbool(x && y)
   | Bor, Vbool x, Vbool y -> Vbool(x || y)
   | _ -> failwith "bug:type error not catched"
+  
+let get_op_b op x y =
+  match op, x, y with
+  | Badd, Vint x, Vint y -> Vint(x + y)
+  | Bsub, Vint x, Vint y -> Vint(x - y)
+  | Bmul, Vint x, Vint y -> Vint(x * y)
+  | Bdiv, Vint x, Vint y -> Vint(x / y)
+  | Bmod, Vint x, Vint y -> Vint(x mod y)
+  | Bgt, Vint x, Vint y -> Vbool(x > y)
+  | Bge, Vint x, Vint y -> Vbool(x >= y)
+  | Blt, Vint x, Vint y -> Vbool(x < y)
+  | Ble, Vint x, Vint y -> Vbool(x >= y)
+  | Beq, Vint x, Vint y -> Vbool(x = y)
+  | Bneq, Vint x, Vint y -> Vbool(x != y)
+  | Band, Vbool x, Vbool y -> Vbool(x && y)
+  | Bor, Vbool x, Vbool y -> Vbool(x || y)
+  | _ -> failwith "bug:type error not catched"
 
-let rec eval env exp =
+(*let rec eval env exp =
   match exp with
   | Bool b -> Vbool b
   | Int i -> Vint i
@@ -51,6 +78,7 @@ let rec eval env exp =
   | Var v -> (try List.assoc v env with Not_found -> failwith "bug:type error not catched")
   | Binop(op,e1,e2) -> (get_op_b op) (eval env e1) (eval env e2)
   | Unop(op,e) -> (get_op_u op) (eval env e)
+  *)
 
 let string_type_of_value = function
   | Vbool _ -> "bool"
@@ -91,14 +119,22 @@ let string_of_op_b = function
 
 let rec string_of_expr exp =
   match exp with
-  | Bool true -> "true"
-  | Bool false -> "false"
   | Int i -> string_of_int i
   | Var v -> v
-  | Def(v, e1, e2) -> v^"="^(string_of_expr e1)^" in "^(string_of_expr e2)
+  | Null -> "null"
+  | Bool true -> "true"
+  | Bool false -> "false"
+  | This -> "this"
+  | String s -> s
+  | Unop(op, e) -> "("^(string_of_op_u op)^(string_of_expr e)^")"
   | Binop(op, e1, e2) -> 
       "("^(string_of_expr e1)^(string_of_op_b op)^(string_of_expr e2)^")"
-  | Unop(op, e) -> "("^(string_of_op_u op)^(string_of_expr e)^")"
+  | Assign(s,e) -> s^"="^(string_of_expr e)
+  | Def(v, e1, e2) -> v^"="^(string_of_expr e1)^" in "^(string_of_expr e2)
+  | Ifelse(e1,e2,e3) -> "if("^(string_of_expr e1)^") { "^(string_of_expr e2 )^" }else{ "^(string_of_expr e3)^"}"
+ (* | Invoke(e, args) -> (string_of_expr e)^"."^(string_of_expr args)
+  | New t -> "new"
+  *)
 
 type typ = Tbool | Tint
 exception Wrong_types_bop of binop * typ * typ
