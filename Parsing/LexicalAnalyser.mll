@@ -1,5 +1,5 @@
 {
-  open SyntaxAnalyser
+open SyntaxAnalyser
 
 let print_element = function
     | EOF       -> print_string "EOF"
@@ -11,8 +11,8 @@ let print_element = function
     | SEMICOLON -> print_string "SEMICOLON"
     | ASSIGN    -> print_string "ASSIGN"
     | COMMA     -> print_string "COMMA"
-    | DOT    -> print_string "DOT"
-    | NOT   	-> print_string "NOT"
+    | DOT       -> print_string "DOT"
+    | NOT   	  -> print_string "NOT"
     | MINUS     -> print_string "MINUS"
     | LT        -> print_string "LT"
     | GT        -> print_string "GT"
@@ -45,62 +45,60 @@ let print_element = function
     | STRING s  -> print_string "STRING("; print_string s; print_string ")"
     | VAR s     -> print_string "VAR("; print_string s; print_string ")"
     
-    | INLINECOMMENT ic -> print_string "INLINECOMMENT("; print_string ic; print_string ")"
-    | MULLINECOMMENT mc-> print_string "MULLINECOMMENT("; print_string mc; print_string ")"
+    | INLINECOMMENT  ic -> print_string "INLINECOMMENT("; print_string ic; print_string ")"
+    | MULLINECOMMENT mc -> print_string "MULLINECOMMENT("; print_string mc; print_string ")"
 
-  open Lexing
-  exception Eof
+open Lexing
+exception Eof
 
-  type error =
-    | Illegal_character of char
-    | Illegal_int of string
-  exception Error of error * position * position
+type error =
+  | Illegal_character of char
+  | Illegal_int of string
+exception Error of error * position * position
 
-  let raise_error err lexbuf =
+let raise_error err lexbuf =
     raise (Error(err, lexeme_start_p lexbuf, lexeme_end_p lexbuf))
-    
   (* Les erreurs. *)
   let report_error = function
     | Illegal_character c ->
-	print_string "Illegal character '";
-	print_char c;
-	print_string "' "
+      print_string "Illegal character '";
+      print_char c;
+      print_string "' "
     | Illegal_int nb ->
-	print_string "The int ";
-	print_string nb;
-	print_string " is illegal "
+      print_string "The int ";
+      print_string nb;
+      print_string " is illegal "
 
   let print_position debut fin =
     if (debut.pos_lnum = fin.pos_lnum) then
       begin
-	print_string "line ";
-	print_int debut.pos_lnum;
-	print_string " characters ";
-	print_int (debut.pos_cnum - debut.pos_bol);
-	print_string "-";
-	print_int (fin.pos_cnum - fin.pos_bol)
+        print_string "line ";
+        print_int debut.pos_lnum;
+        print_string " characters ";
+        print_int (debut.pos_cnum - debut.pos_bol);
+        print_string "-";
+        print_int (fin.pos_cnum - fin.pos_bol)
       end
     else
       begin
-	print_string "from line ";
-	print_int debut.pos_lnum;
-	print_string " character ";
-	print_int (debut.pos_cnum - debut.pos_bol);
-	print_string " to line ";
-	print_int fin.pos_lnum;
-	print_string " character ";
-	print_int (fin.pos_cnum - fin.pos_bol)
+        print_string "from line ";
+        print_int debut.pos_lnum;
+        print_string " character ";
+        print_int (debut.pos_cnum - debut.pos_bol);
+        print_string " to line ";
+        print_int fin.pos_lnum;
+        print_string " character ";
+        print_int (fin.pos_cnum - fin.pos_bol)
       end
 
   let incr_line lexbuf =
     let pos = lexbuf.lex_curr_p in
       lexbuf.lex_curr_p <- 
-	{ 
-	  pos with 
-	    pos_lnum = pos.pos_lnum + 1; 
-	    pos_bol = pos.pos_cnum;
-	}
-
+      { 
+        pos with 
+          pos_lnum = pos.pos_lnum + 1; 
+          pos_bol = pos.pos_cnum;
+      }
 }
 
 let l_letter = ['a'-'z']
@@ -162,13 +160,12 @@ rule nexttoken = parse
   | var_name as str       { VAR str }
   | _ as c                { raise_error (Illegal_character(c)) lexbuf }
 
-(*
 {
   let rec examine_all lexbuf =
-    let res = expressions nexttoken lexbuf in
+    let res = nexttoken lexbuf in
     print_element res;
     print_string " ";
     match res with
     | EOF -> ()
     | _   -> examine_all lexbuf
-}*)
+}

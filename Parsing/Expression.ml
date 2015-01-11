@@ -6,7 +6,6 @@ type binop =
 type unop =
   | Unot | Uminus
 
-
 type type_ =
   | Type of string
   
@@ -14,16 +13,19 @@ type expression =
   | Bool of bool
   | Int of int
   | Var of string
+  | Null
+  | This
   | String of string
   | Def of string * string * expression * expression
-  | Binop of binop * expression * expression
   | Unop of unop * expression
-  | Null
+  | Binop of binop * expression * expression  
   | Assign of string * expression
   | Ifelse of expression * expression * expression
-  | Instanceof of expression * type_
-  
-  
+  | Instanceof of expression * string
+  | Cast of string * expression
+  | New of string
+  | Invoke of expression * string * expression list
+
 type value =
   | Vbool of bool
   | Vint of int
@@ -105,10 +107,23 @@ let rec string_of_expr exp =
   | Bool false -> "false"
   | Int i -> string_of_int i
   | Var v -> v
-  | Def(v1,v2, e1, e2) -> v1 ^ v2 ^"="^(string_of_expr e1)^" in "^(string_of_expr e2)
+  | Null -> "null"
+  | Bool true -> "true"
+  | Bool false -> "false"
+  | Int i -> string_of_int i
+  | Var v -> v
+  | This -> "this"
+  | String s -> s
+  | Unop(op, e) -> "("^(string_of_op_u op)^(string_of_expr e)^")"
   | Binop(op, e1, e2) -> 
       "("^(string_of_expr e1)^(string_of_op_b op)^(string_of_expr e2)^")"
-  | Unop(op, e) -> "("^(string_of_op_u op)^(string_of_expr e)^")"
+  | Assign(s,e) -> s^"="^(string_of_expr e)
+  | Def(v1, v2, e1, e2) -> " " ^v2^"="^(string_of_expr e1)^" in "^(string_of_expr e2)
+  | Ifelse(e1,e2,e3) -> "if("^(string_of_expr e1)^") { "^(string_of_expr e2 )^" }else{ "^(string_of_expr e3)^"}"
+  | Cast(t, v) -> "cast " ^ t ^ " "^ string_of_expr v
+ (* | Invoke(e, args) -> (string_of_expr e)^"."^(string_of_expr args)
+  | New t -> "new"
+  *)
 
 type typ = Tbool | Tint
 exception Wrong_types_bop of binop * typ * typ
@@ -148,7 +163,7 @@ let rec typing env exp =
   | Var v -> (try List.assoc v env with Not_found -> raise(Unbound_variable v))
   | Def(v1, v2,e1,e2) ->
      let t1 = typing env e1 in
-     typing ((v1,t1)::env) e2
+     typing ((v2,t1)::env) e2
   | Binop(op,e1,e2) ->
      let t1 = typing env e1 in
      let t2 = typing env e2 in
@@ -156,3 +171,4 @@ let rec typing env exp =
   | Unop(op,e) -> 
      let t = typing env e in
      get_op_u_type op t
+

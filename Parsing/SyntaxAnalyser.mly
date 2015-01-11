@@ -30,7 +30,7 @@
 
 		     
 /* Declaration of variables */
-%token <Expression.type_> TYPE
+%token <string> TYPE
 
 /* Comments */
 %token <string> INLINECOMMENT
