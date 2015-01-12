@@ -144,27 +144,29 @@ let rec string_of_expr exp =
   match exp with
   | NoExp -> ""
   | ExpList(e,l) -> string_of_expr e ; print_string "," ; string_of_expr l
-  | Int i -> string_of_int i
-  | Var v -> v
-  | Null -> "null"
-  | Bool true -> "true"
-  | Bool false -> "false"
-  | This -> "this"
-  | String s -> s
-  | Unop(op, e) -> "("^(string_of_op_u op)^(string_of_expr e)^")"
+  | Int i -> "Int("^string_of_int i^")"
+  | Var v -> "Var("^v^")"
+  | Null -> "Null()"
+  | Bool true -> "Bool(true)"
+  | Bool false -> "Bool(false)"
+  | This -> "This(this)"
+  | String s -> "String("^s^")"
+  | Unop(op, e) -> "Unop("^(string_of_op_u op)^(string_of_expr e)^")"
   | Binop(op, e1, e2) -> 
-      "("^(string_of_expr e1)^(string_of_op_b op)^(string_of_expr e2)^")"
-  | Assign(s,e) -> s^"="^(string_of_expr e)
-  | Def(v1, v2, e1, e2) -> " " ^v2^"="^(string_of_expr e1)^" in "^(string_of_expr e2)
-  | Ifelse(e1,e2,e3) -> "if("^(string_of_expr e1)^") { "^(string_of_expr e2 )^" }else{ "^(string_of_expr e3)^"}"
-  | Cast(t, v) -> "cast " ^ t ^ " " ^ string_of_expr v
-  | Invoke(e, s, l) -> (string_of_expr e)^"."^s^"("^(string_of_args l)^")"
-  | New s -> "new "^s 
-  | Instanceof(e, t) ->"instanceof " ^ string_of_expr e ^  " "^t
-  and string_of_args = function
-      [] -> ""
-      | a::l -> string_of_expr a ^ string_of_args l
-      
+      "Binop("^(string_of_expr e1)^(string_of_op_b op)^(string_of_expr e2)^")"
+  | Assign(s,e) -> "Assign("^s^"="^(string_of_expr e)^")"
+  | Def(v1, v2, e1, e2) -> "Def("^v1^v2^"="^(string_of_expr e1)^" in "^(string_of_expr e2)^")"
+  | Ifelse(e1,e2,e3) -> "Ifelse("^(string_of_expr e1)^") { "^(string_of_expr e2 )^" }else{ "^(string_of_expr e3)^"})"
+  | Cast(t, v) -> "Cast(" ^ t ^ " " ^ string_of_expr v ^")"
+  | Invoke(e, s, l) -> "Invoke("^(string_of_expr e)^"."^s^"("^(string_of_args l)^"))"
+  | New s -> "New("^s^")" 
+  | Instanceof(e, t) ->"Instanceof(" ^ string_of_expr e ^  " "^t^")"
+and string_of_args args =
+  print_string "Arg(";
+  match args with
+      [] -> ")"
+      | a::l -> string_of_expr a ^", "^ string_of_args l
+  
   (*
 let rec string_of_params = function
   | NoParam -> ""
@@ -173,19 +175,21 @@ let rec string_of_params = function
     *)
     
 let rec string_of_param p = match p with
-	| Param(t,id) -> t^" "^id
+	| Param(t,id) -> "Param("^t^" "^id^")"
   
-let rec string_of_params = function
-  [] -> ""
-  | (p :: l) -> string_of_param(p)^","^(string_of_params l)
+let rec string_of_params params =
+  print_string "Params(";
+  match params with
+  [] -> ")"
+  | (p :: l) -> string_of_param(p)^", "^(string_of_params l)
   
 let string_of_attr = function
-  | Attribute(static, s1,s2) ->string_of_bool static ^ s1^" "^s2^";"
-  | AttributeWithAssign(static, s1,s2,e) -> string_of_bool static ^s1^" "^s2^" ="^(string_of_expr e)^";"
+  | Attribute(static, s1,s2) ->"Attribute("^string_of_bool static ^ s1^" "^s2^")"
+  | AttributeWithAssign(static, s1,s2,e) -> "AttributeWithAssign("^string_of_bool static ^s1^" "^s2^" ="^(string_of_expr e)^")"
   
 let string_of_mthd = function
-  | Method(s1,s2,p,e) -> s1^" "^s2^"("^(string_of_params p)^") {"^(string_of_expr e)^"}"
-  | MethodStatic(s1,s2,p,e) -> s1^" "^s2^"("^(string_of_params p)^") {"^(string_of_expr e)^"}"
+  | Method(s1,s2,p,e) -> "Method("^s1^" "^s2^"("^(string_of_params p)^") {"^(string_of_expr e)^"})"
+  | MethodStatic(s1,s2,p,e) -> "MethodStatic("^s1^" "^s2^"("^(string_of_params p)^") {"^(string_of_expr e)^"})"
   (*
 let string_of_attr_or_method = function 
   [] -> ""
@@ -193,20 +197,22 @@ let string_of_attr_or_method = function
   | Meth (m::l) -> string_of_mthd m ^ string_of_attr_or_method l
   *)
 let string_of_attr_or_method = function
-  | Attr a -> string_of_attr a
-  | Meth m -> string_of_mthd m
+  | Attr a -> "Attr("^string_of_attr a^")"
+  | Meth m -> "Meth("^string_of_mthd m^")"
   
-let rec string_of_attrs_or_methods = function 
-  [] -> ""
-  | a::l -> (string_of_attr_or_method a) ^ (string_of_attrs_or_methods l)
+let rec string_of_attrs_or_methods aom =
+  print_string "Attrs_or_methods(";
+  match aom with
+  [] -> ")"
+  | a::l -> (string_of_attr_or_method a) ^" "^ (string_of_attrs_or_methods l)
   
 let string_of_class_ = function
-  | Class_(s1, aom) -> "class"^s1^" { "^(string_of_attrs_or_methods aom)^" }" 
-  | ClassWithExtends(s1,s2, aom) -> "class"^s1^"(extends "^s2^") { "^(string_of_attrs_or_methods aom)^" }" 
+  | Class_(s1, aom) -> "Class_("^"class("^s1^" { "^(string_of_attrs_or_methods aom)^" })" 
+  | ClassWithExtends(s1,s2, aom) -> "ClassWithExtends("^"class"^s1^"(extends "^s2^") { "^(string_of_attrs_or_methods aom)^" })" 
   
 let string_of_classorexpr = function
-  | Class c -> string_of_class_ c
-  | Expr e -> string_of_expr  e
+  | Class c -> "Class("^string_of_class_ c^")"
+  | Expr e -> "Expr("^string_of_expr  e^")"
       
 type typ = Tbool | Tint
 exception Wrong_types_bop of binop * typ * typ
