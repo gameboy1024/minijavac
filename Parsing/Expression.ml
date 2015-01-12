@@ -23,7 +23,12 @@ type expression =
   | New of string 
   | Instanceof of expression * string
   | Cast of string * expression
-  | Invoke of expression * string * expression
+  | Invoke of expression * string * expression list
+  and arg =
+    | Arg of expression
+  and args =
+    | Args of arg list
+    
 (*
 type params = 
   | NoParam
@@ -153,9 +158,13 @@ let rec string_of_expr exp =
   | Def(v1, v2, e1, e2) -> " " ^v2^"="^(string_of_expr e1)^" in "^(string_of_expr e2)
   | Ifelse(e1,e2,e3) -> "if("^(string_of_expr e1)^") { "^(string_of_expr e2 )^" }else{ "^(string_of_expr e3)^"}"
   | Cast(t, v) -> "cast " ^ t ^ " " ^ string_of_expr v
-  | Invoke(e, s, l) -> (string_of_expr e)^"."^s^"("^(string_of_expr l)^")"
+  | Invoke(e, s, l) -> (string_of_expr e)^"."^s^"("^(string_of_args l)^")"
   | New s -> "new "^s 
-  
+  | Instanceof(e, t) ->"instanceof " ^ string_of_expr e ^  " "^t
+  and string_of_args = function
+      [] -> ""
+      | a::l -> string_of_expr a ^ string_of_args l
+      
   (*
 let rec string_of_params = function
   | NoParam -> ""

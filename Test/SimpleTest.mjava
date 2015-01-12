@@ -1,1 +1,3 @@
-class Factorial {}
+class Factorial {
+  static Int a ;
+}

@@ -60,8 +60,8 @@
 /*************/
 
 file_content:
-  | EOF {print_endline("hahaha");[]}
-  | e=class_or_expression rest=file_content EOF  { print_endline("olala");e::rest }
+  | EOF {[]}
+  | e=class_or_expression rest=file_content EOF  { print_endline("hahah1a");e::rest }
 
 class_or_expression:
   | c=class_body { Class(c) }
@@ -85,10 +85,15 @@ attribute_or_method:
       { Meth(m) }
 
 attribute:
-  | static=STATIC? t=TYPE id=VAR SEMICOLON 
-      {Attribute(static == None, t, id)}
-  | static=STATIC? t=TYPE id=VAR ASSIGN e=expr SEMICOLON 
-      {AttributeWithAssign(static == None, t, id, e)}
+  | s=STATIC t=TYPE id=VAR SEMICOLON 
+      {Attribute(true, t, id)}
+  | t=TYPE id=VAR SEMICOLON 
+      {Attribute(false, t, id)}
+  | STATIC t=TYPE id=VAR ASSIGN e=expr SEMICOLON 
+      {AttributeWithAssign(true, t, id, e)}
+  | t=TYPE id=VAR ASSIGN e=expr SEMICOLON 
+      {AttributeWithAssign(false, t, id, e)}
+
 
 method_:
   | t=TYPE id=VAR LPAREN p=params RPAREN LBRACE e=expr RBRACE
@@ -137,11 +142,12 @@ expr:
   | LPAREN t=TYPE RPAREN e=expr
       { Cast(t, e) }
   | e=expr INSTANCEOF t=TYPE
-      { Instanceof(e, t) }
+      { print_endline("hahah3a");Instanceof(e, t) }
 
 args:
-  | e=expr { e }
-  | e=expr COMMA rest=args { ExpList(e, rest) }
+  |  {[]}
+  | e=expr { [e] }
+  | e=expr COMMA rest=args { e:: rest }
 
 
 %inline bop:

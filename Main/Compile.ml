@@ -3,6 +3,7 @@ open SyntaxAnalyser
 open Expression
 
 let treat_file_content exp = 
+
   print_string (string_of_classorexpr exp);
   try
     (*print_string (string_of_value (eval [] exp));*)
@@ -23,8 +24,15 @@ let treat_file_content exp =
 let execute lexbuf verbose = 
   print_endline("verbose=" ^ string_of_bool(verbose));
   print_endline("Lexical Analyser running...");
-  LexicalAnalyser.examine_all lexbuf;
-  print_string "\n";
+  (*LexicalAnalyser.examine_all lexbuf;
+  print_string "\n";*)
   print_endline("Syntax Analyser running...");
-  let exp_list = file_content nexttoken lexbuf in
-    List.iter treat_file_content exp_list
+  try 
+    let exp_list = SyntaxAnalyser.file_content nexttoken lexbuf in
+      print_endline("Start printing AST...");
+      List.iter treat_file_content exp_list
+  with
+    | Error -> print_string("Unknown compilation error: ");
+    (* Do not commit *)
+    let pos = Location.curr lexbuf in 
+  							Location.print pos;
