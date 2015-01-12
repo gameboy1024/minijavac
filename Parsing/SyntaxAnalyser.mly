@@ -23,7 +23,6 @@
 %token <int> INT
 %token <bool> BOOL
 %token <string> STRING
-%token TRUE FALSE
 
 /* Identifiers */
 %token <string> VAR
@@ -101,13 +100,13 @@ attribute:
 
 method_:
   // Four cases: static or not and with params or not
-  | STATIC t=TYPE id=VAR LPAREN p=params RPAREN LBRACE e=expr RBRACE
+  | STATIC t=TYPE id=VAR LPAREN p=params RPAREN LBRACE e=expr* RBRACE
       { Method(true, t, id, p, e) }
-  | STATIC t=TYPE id=VAR LPAREN RPAREN LBRACE e=expr RBRACE
+  | STATIC t=TYPE id=VAR LPAREN RPAREN LBRACE e=expr* RBRACE
       { Method(true, t, id, [], e) }
-  | t=TYPE id=VAR LPAREN p=params RPAREN LBRACE e=expr RBRACE
+  | t=TYPE id=VAR LPAREN p=params RPAREN LBRACE e=expr* RBRACE
       { Method(false, t, id, p, e) }
-  | t=TYPE id=VAR LPAREN RPAREN LBRACE e=expr RBRACE
+  | t=TYPE id=VAR LPAREN RPAREN LBRACE e=expr* RBRACE
       { Method(false, t, id, [], e) }
 
 param:
@@ -120,9 +119,11 @@ params:
       { [Param(t,id)] }	
   | t=TYPE id=VAR COMMA rest=param+
       { Param(t,id) :: rest }
-
+  
 expr:
-  | comment* e=expr comment*
+  | comment+ e=expr
+      { e }
+  | e=expr comment+
       { e }
   | LPAREN e=expr RPAREN
       { e }
@@ -159,8 +160,6 @@ expr:
   | e=expr INSTANCEOF t=TYPE
       { Instanceof(e, t) }
 
-
-
 args:
   | { [] }
   | e=expr { [e] }
@@ -180,6 +179,6 @@ args:
   | LT        { Blt }
   | LE        { Ble }
   | EQ        { Beq }
-  | NE        { Bneq }
+  | NE        { Bne }
   
 %%

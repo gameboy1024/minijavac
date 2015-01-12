@@ -2,6 +2,7 @@
 open SyntaxAnalyser
 
 let print_element = function
+    | EOL       -> print_string "EOL"
     | EOF       -> print_string "EOF"
     | CLASS     -> print_string "CLASS"
     | LPAREN    -> print_string "LPAREN"
@@ -30,7 +31,6 @@ let print_element = function
     | TYPE s    -> print_string "TYPE("; print_string s; print_string ")"
     | ELSE      -> print_string "ELSE"
     | EXTENDS   -> print_string "EXTENDS"
-    | FALSE     -> print_string "FALSE"
     | IF        -> print_string "IF"
     | IN        -> print_string "IN"
     | INSTANCEOF-> print_string "INSTANCEOF"
@@ -38,7 +38,6 @@ let print_element = function
     | NULL      -> print_string "NULL"
     | STATIC    -> print_string "STATIC"
     | THIS      -> print_string "THIS"
-    | TRUE      -> print_string "TRUE"
     
     | BOOL b    -> print_string "BOOL("; print_string (string_of_bool b); print_string ")"
     | INT i     -> print_string "INT("; print_int i; print_string ")"
@@ -47,6 +46,7 @@ let print_element = function
     
     | INLINECOMMENT  ic -> print_string "INLINECOMMENT("; print_string ic; print_string ")"
     | MULLINECOMMENT mc -> print_string "MULLINECOMMENT("; print_string mc; print_string ")"
+    | _ -> print_string "Unknown element."
 
 open Lexing
 exception Eof
