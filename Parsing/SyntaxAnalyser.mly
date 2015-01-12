@@ -79,7 +79,7 @@ class_body:
       { ClassWithExtends(t, st, a) }
 
 attributes_or_methods:
-  | {[]}
+  |   { [] }
   | a=attribute_or_method  rest=attribute_or_method*
       { a :: rest }
 
@@ -90,13 +90,13 @@ attribute_or_method:
       { Meth(m) }
 
 attribute:
-  | STATIC t=TYPE id=VAR SEMICOLON 
+  | STATIC t=TYPE id=VAR SEMICOLON
       { Attribute(true, t, id) }
-  | t=TYPE id=VAR SEMICOLON 
+  | t=TYPE id=VAR SEMICOLON
       { Attribute(false, t, id) }
-  | STATIC t=TYPE id=VAR ASSIGN e=expr SEMICOLON 
+  | STATIC t=TYPE id=VAR ASSIGN e=expr SEMICOLON
       { AttributeWithAssign(true, t, id, e) }
-  | t=TYPE id=VAR ASSIGN e=expr SEMICOLON 
+  | t=TYPE id=VAR ASSIGN e=expr SEMICOLON
       { AttributeWithAssign(false, t, id, e) }
 
 method_:
@@ -162,9 +162,9 @@ expr:
 
 
 args:
-  | {[]}
+  | { [] }
   | e=expr { [e] }
-  | e=expr COMMA rest=args { e:: rest }
+  | e=expr COMMA rest=args { e :: rest }
 
 
 %inline bop:

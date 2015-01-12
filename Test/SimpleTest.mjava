@@ -15,9 +15,12 @@ class Factorial {
     // In-method comment 2
   }
 }
+class Factorial2 extends Factorial {
+}
+
 // Between-class comment
 (a)
-a
+b
 5
 //"hello world"
 null

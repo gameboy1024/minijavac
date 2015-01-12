@@ -107,14 +107,14 @@ let letter = l_letter | b_letter
 let digit = ['0'-'9']
 let integer = digit+
 let boolean = "true" | "false"
-let string = '"' _* '"'
+let str = '"' ([^'"'] | '\"' )* '"'
 let type_name = b_letter (letter)*
 let var_name = l_letter (letter | digit | '_')*
 let newline = ('\010' | '\013' | "\013\010")
 let blank = [' ' '\009']
 
 let inline_comment = "//" [^'\n']*
-let mulline_comment = "/*" [^'/']* "*/"
+let mulline_comment = "/*" _* "*/"
 
 rule nexttoken = parse
   | newline               { incr_line lexbuf; nexttoken lexbuf }
@@ -122,6 +122,7 @@ rule nexttoken = parse
   | eof                   { EOF }
   | inline_comment as c   { INLINECOMMENT c}
   | mulline_comment as c  { MULLINECOMMENT c}
+  | str as s              { STRING s }
   | "class"               { CLASS }
   | "else"                { ELSE }
   | "extends"             { EXTENDS }

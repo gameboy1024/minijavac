@@ -4,7 +4,7 @@ open Expression
 
 let treat_file_content exp = 
 
-  print_string (string_of_classorexpr exp);
+  print_string (string_of_class_or_expr exp);
   try
     (*print_string (string_of_value (eval [] exp));*)
     print_newline()
