@@ -1,3 +1,32 @@
+// Start comment
 class Factorial {
-  static Int a ;
+  // Attributes
+  static Int staticAttr;
+  Int attr;
+  static Int staticAttr2 = 5;
+  Int attr2 = attr;
+  // Middle comment
+  static Int test () {
+    true
+  }
+  Int test ( Int a, Boolean b ) {
+    // In-method comment
+    true
+    // In-method comment 2
+  }
 }
+// Between-class comment
+(a)
+a
+5
+//"hello world"
+null
+true
+false
+this
+!true
+a + 5
+a = 3 + 5 % 2 / 3 * 4
+
+// End comment
+

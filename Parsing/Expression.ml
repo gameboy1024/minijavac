@@ -47,8 +47,7 @@ type attr =
   | AttributeWithAssign of bool * string * string * expression 
 
 type mthd = 
-  | Method of string * string * (param list) * expression 
-  | MethodStatic of string * string * (param list) * expression 
+  | Method of bool * string * string * (param list) * expression
   
 type attr_or_method = 
   | Attr of attr 
@@ -147,11 +146,11 @@ let rec string_of_expr exp =
   | Int i -> string_of_int i
   | Var v -> v
   | Null -> "null"
-  | Bool true -> "true"
-  | Bool false -> "false"
+  | Bool true -> "Bool true"
+  | Bool false -> "Bool false"
   | This -> "this"
   | String s -> s
-  | Unop(op, e) -> "("^(string_of_op_u op)^(string_of_expr e)^")"
+  | Unop(op, e) -> "Unop("^(string_of_op_u op)^(string_of_expr e)^")"
   | Binop(op, e1, e2) -> 
       "("^(string_of_expr e1)^(string_of_op_b op)^(string_of_expr e2)^")"
   | Assign(s,e) -> s^"="^(string_of_expr e)
@@ -184,8 +183,7 @@ let string_of_attr = function
   | AttributeWithAssign(static, s1,s2,e) -> string_of_bool static ^s1^" "^s2^" ="^(string_of_expr e)^";"
   
 let string_of_mthd = function
-  | Method(s1,s2,p,e) -> s1^" "^s2^"("^(string_of_params p)^") {"^(string_of_expr e)^"}"
-  | MethodStatic(s1,s2,p,e) -> s1^" "^s2^"("^(string_of_params p)^") {"^(string_of_expr e)^"}"
+  | Method(b, s1,s2,p,e) -> string_of_bool b ^ s1^" "^s2^"("^(string_of_params p)^") {"^(string_of_expr e)^"}"
   (*
 let string_of_attr_or_method = function 
   [] -> ""

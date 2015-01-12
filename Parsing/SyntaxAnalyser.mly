@@ -53,64 +53,77 @@
 %start file_content
 %type < Expression.class_or_expr list > file_content
 
-
 %%
 /*************/
 /* The rules */
 /*************/
 
 file_content:
-  | EOF {[]}
-  | e=class_or_expression rest=file_content EOF  { print_endline("hahah1a");e::rest }
+  | comment* EOF {[]}
+  | e=class_or_expression rest=file_content EOF { e::rest }
+  
+comment:
+  | INLINECOMMENT {}
+  | MULLINECOMMENT {}
 
 class_or_expression:
-  | c=class_body { Class(c) }
-  | e=expr { Expr(e) }
+  | comment* c=class_body { Class(c) }
+  | comment* e=expr { Expr(e) }
 
 class_body:
+  // Class without extends
   | CLASS t=TYPE LBRACE a=attributes_or_methods RBRACE 
       { Class_(t, a) }
+  // Class with extends
   | CLASS t=TYPE EXTENDS st=TYPE LBRACE a=attributes_or_methods RBRACE 
       { ClassWithExtends(t, st, a) }
 
 attributes_or_methods:
   | {[]}
-  | a=attribute_or_method rest=attribute_or_method*
+  | a=attribute_or_method  rest=attribute_or_method*
       { a :: rest }
 
 attribute_or_method:    
-  | a=attribute
+  | comment* a=attribute
       { Attr(a) }
-  | m=method_
+  | comment* m=method_
       { Meth(m) }
 
 attribute:
-  | s=STATIC t=TYPE id=VAR SEMICOLON 
-      {Attribute(true, t, id)}
+  | STATIC t=TYPE id=VAR SEMICOLON 
+      { Attribute(true, t, id) }
   | t=TYPE id=VAR SEMICOLON 
-      {Attribute(false, t, id)}
+      { Attribute(false, t, id) }
   | STATIC t=TYPE id=VAR ASSIGN e=expr SEMICOLON 
-      {AttributeWithAssign(true, t, id, e)}
+      { AttributeWithAssign(true, t, id, e) }
   | t=TYPE id=VAR ASSIGN e=expr SEMICOLON 
-      {AttributeWithAssign(false, t, id, e)}
-
+      { AttributeWithAssign(false, t, id, e) }
 
 method_:
+  // Four cases: static or not and with params or not
+  | STATIC t=TYPE id=VAR LPAREN p=params RPAREN LBRACE e=expr RBRACE
+      { Method(true, t, id, p, e) }
+  | STATIC t=TYPE id=VAR LPAREN RPAREN LBRACE e=expr RBRACE
+      { Method(true, t, id, [], e) }
   | t=TYPE id=VAR LPAREN p=params RPAREN LBRACE e=expr RBRACE
-      {Method(t, id, p, e)}
-  | static=STATIC t=TYPE id=VAR LPAREN p=params RPAREN LBRACE e=expr RBRACE
-      {MethodStatic(t, id, p, e)}
+      { Method(false, t, id, p, e) }
+  | t=TYPE id=VAR LPAREN RPAREN LBRACE e=expr RBRACE
+      { Method(false, t, id, [], e) }
 
 param:
   | t=TYPE id=VAR
       { Param(t,id) }
       
 params:
-  | {[]}	
+  | { [] }
+  | t=TYPE id=VAR
+      { [Param(t,id)] }	
   | t=TYPE id=VAR COMMA rest=param+
       { Param(t,id) :: rest }
 
 expr:
+  | comment* e=expr comment*
+      { e }
   | LPAREN e=expr RPAREN
       { e }
   | id=VAR
@@ -123,6 +136,8 @@ expr:
       { Null }
   | b=BOOL
       { Bool b }
+  | THIS
+      { This }
   | NOT e=expr
       { Unop(Unot,e) }
   | MINUS e=expr %prec UMINUS
@@ -142,10 +157,12 @@ expr:
   | LPAREN t=TYPE RPAREN e=expr
       { Cast(t, e) }
   | e=expr INSTANCEOF t=TYPE
-      { print_endline("hahah3a");Instanceof(e, t) }
+      { Instanceof(e, t) }
+
+
 
 args:
-  |  {[]}
+  | {[]}
   | e=expr { [e] }
   | e=expr COMMA rest=args { e:: rest }
 
