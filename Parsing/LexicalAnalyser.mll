@@ -163,9 +163,9 @@ rule nexttoken = parse
 {
   let rec examine_all lexbuf =
     let res = nexttoken lexbuf in
-    print_element res;
-    print_string " ";
-    match res with
-    | EOF -> ()
-    | _   -> examine_all lexbuf
+      print_element res;
+      print_string " ";
+      match res with
+        | EOF -> ()
+        | _   -> examine_all lexbuf
 }

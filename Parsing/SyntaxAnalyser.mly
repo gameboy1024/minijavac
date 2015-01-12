@@ -27,7 +27,6 @@
 
 /* Identifiers */
 %token <string> VAR
-
 		     
 /* Declaration of variables */
 %token <string> TYPE
@@ -52,7 +51,7 @@
 /* Entry points of the parser */
 /******************************/
 %start file_content
-%type < Expression.expression list > file_content
+%type < Expression.class_or_expr list > file_content
 
 
 %%
@@ -61,33 +60,50 @@
 /*************/
 
 file_content:
- | e=class_or_expression EOL* EOF               { [e] }
- | e=class_or_expression EOL+ rest=file_content   { e::rest }
+  | EOF {print_endline("hahaha");[]}
+  | e=class_or_expression rest=file_content EOF  { print_endline("olala");e::rest }
 
 class_or_expression:
-  (*| class_body { $1 }*)
-  | expr { $1 }
-  (*
+  | c=class_body { Class(c) }
+  | e=expr { Expr(e) }
+
 class_body:
-  | CLASS TYPE LBRACE (attribute_or_method)* RBRACE { $1} *)
-  (*
-attribute_or_method:
-  | attribute 
-      { $1 }
-  | method_ 
-      { $1 }
-  
+  | CLASS t=TYPE LBRACE a=attributes_or_methods RBRACE 
+      { Class_(t, a) }
+  | CLASS t=TYPE EXTENDS st=TYPE LBRACE a=attributes_or_methods RBRACE 
+      { ClassWithExtends(t, st, a) }
+
+attributes_or_methods:
+  | {[]}
+  | a=attribute_or_method rest=attribute_or_method*
+      { a :: rest }
+
+attribute_or_method:    
+  | a=attribute
+      { Attr(a) }
+  | m=method_
+      { Meth(m) }
+
 attribute:
-  | STATIC? t=TYPE id=VAR (ASSIGN e=expr)? SEMICOLON 
-      {Attribute(t, id, e)}
+  | static=STATIC? t=TYPE id=VAR SEMICOLON 
+      {Attribute(static == None, t, id)}
+  | static=STATIC? t=TYPE id=VAR ASSIGN e=expr SEMICOLON 
+      {AttributeWithAssign(static == None, t, id, e)}
 
 method_:
-  | STATIC? t=TYPE id=VAR LPAREN p?=params RPAREN LBRACE e=expr RBRACE
+  | t=TYPE id=VAR LPAREN p=params RPAREN LBRACE e=expr RBRACE
       {Method(t, id, p, e)}
-  *)
+  | static=STATIC t=TYPE id=VAR LPAREN p=params RPAREN LBRACE e=expr RBRACE
+      {MethodStatic(t, id, p, e)}
+
+param:
+  | t=TYPE id=VAR
+      { Param(t,id) }
+      
 params:
-  | t=TYPE id=VAR { [t, id] }
-  | t=TYPE id=VAR COMMA rest=args { [t, id]::rest }
+  | {[]}	
+  | t=TYPE id=VAR COMMA rest=param+
+      { Param(t,id) :: rest }
 
 expr:
   | LPAREN e=expr RPAREN
@@ -114,8 +130,8 @@ expr:
       { Def(t, id, e1, e2) }
   | IF LPAREN cond=expr RPAREN LBRACE eif=expr RBRACE ELSE LBRACE eelse=expr RBRACE
       { Ifelse(cond, eif, eelse) }
-  | e=expr DOT mthd=VAR LPAREN args=args RPAREN
-      { Invoke(e, mthd, args) }
+  | e=expr DOT mthd=VAR LPAREN args_=args RPAREN
+      { Invoke(e, mthd, args_) }
   | NEW t=TYPE
       { New(t) }
   | LPAREN t=TYPE RPAREN e=expr
@@ -124,8 +140,8 @@ expr:
       { Instanceof(e, t) }
 
 args:
-  | e=expr { [e] }
-  | e=expr COMMA rest=args { e::rest }
+  | e=expr { e }
+  | e=expr COMMA rest=args { ExpList(e, rest) }
 
 
 %inline bop:

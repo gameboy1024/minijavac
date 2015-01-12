@@ -23,34 +23,43 @@ type expression =
   | New of string 
   | Instanceof of expression * string
   | Cast of string * expression
-  | Invoke of expression * string * expression list
-
-type params =
+  | Invoke of expression * string * expression
+(*
+type params = 
   | NoParam
   | Param of string * string
   | Params of params * params
+ *)
  
-type attr =
-  | Attribute of string * string * expression 
-
-type meth = 
-  | Method of string * string * params * expression 
+type param = 
+  | Param of string * string
   
-type attrormeth = 
+type params =
+  | Params of param list
+  
+type attr =
+  | Attribute of bool * string * string
+  | AttributeWithAssign of bool * string * string * expression 
+
+type mthd = 
+  | Method of string * string * (param list) * expression 
+  | MethodStatic of string * string * (param list) * expression 
+  
+type attr_or_method = 
   | Attr of attr 
-  | Meth of meth
+  | Meth of mthd
 
 type class_ =
-  | Class_ of string * string * attrormeth
+  | Class_ of string * attr_or_method list
+  | ClassWithExtends of string * string * attr_or_method list
   
-type classorexpr = 
+type class_or_expr = 
   | Class of class_ 
   | Expr of expression
   
 type value =
   | Vbool of bool
   | Vint of int
-  
 
 		     
 exception Unbound_variable of string
@@ -77,6 +86,9 @@ let get_op_b op x y =
   | Band, Vbool x, Vbool y -> Vbool(x && y)
   | Bor, Vbool x, Vbool y -> Vbool(x || y)
   | _ -> failwith "bug:type error not catched"
+  
+(*
+let rec eval env exp =
   match exp with
   | Bool b -> Vbool b
   | Int i -> Vint i
@@ -84,7 +96,7 @@ let get_op_b op x y =
   | Var v -> (try List.assoc v env with Not_found -> failwith "bug:type error not catched")
   | Binop(op,e1,e2) -> (get_op_b op) (eval env e1) (eval env e2)
   | Unop(op,e) -> (get_op_u op) (eval env e)
-  *)
+*)
 
 let string_type_of_value = function
   | Vbool _ -> "bool"
@@ -140,32 +152,48 @@ let rec string_of_expr exp =
   | Assign(s,e) -> s^"="^(string_of_expr e)
   | Def(v1, v2, e1, e2) -> " " ^v2^"="^(string_of_expr e1)^" in "^(string_of_expr e2)
   | Ifelse(e1,e2,e3) -> "if("^(string_of_expr e1)^") { "^(string_of_expr e2 )^" }else{ "^(string_of_expr e3)^"}"
-  | Cast(t, v) -> "cast " ^ t ^ " "^ string_of_expr v
- (* | Invoke(e, args) -> (string_of_expr e)^"."^(string_of_expr args)
-  | New t -> "new"
-  *)
-
+  | Cast(t, v) -> "cast " ^ t ^ " " ^ string_of_expr v
   | Invoke(e, s, l) -> (string_of_expr e)^"."^s^"("^(string_of_expr l)^")"
   | New s -> "new "^s 
   
-  
+  (*
 let rec string_of_params = function
   | NoParam -> ""
   | Param(s1,s2) ->  s1^" "^s2
-  | Params (p,l) -> string_of_params p; print_string "," ; string_of_params l
+  | Params(p,l) -> string_of_params p; print_string "," ; string_of_params l
+    *)
     
+let rec string_of_param p = match p with
+	| Param(t,id) -> t^" "^id
+  
+let rec string_of_params = function
+  [] -> ""
+  | (p :: l) -> string_of_param(p)^","^(string_of_params l)
+  
 let string_of_attr = function
-  | Attribute(s1,s2,e) -> s1^" "^s2^" ="^(string_of_expr e)^";"
+  | Attribute(static, s1,s2) ->string_of_bool static ^ s1^" "^s2^";"
+  | AttributeWithAssign(static, s1,s2,e) -> string_of_bool static ^s1^" "^s2^" ="^(string_of_expr e)^";"
   
-let string_of_meth = function
+let string_of_mthd = function
   | Method(s1,s2,p,e) -> s1^" "^s2^"("^(string_of_params p)^") {"^(string_of_expr e)^"}"
-  
-let string_of_attrormeth = function 
+  | MethodStatic(s1,s2,p,e) -> s1^" "^s2^"("^(string_of_params p)^") {"^(string_of_expr e)^"}"
+  (*
+let string_of_attr_or_method = function 
+  [] -> ""
+  | Attr (a::l) -> (string_of_attr a) ^ (string_of_attr_or_method l)
+  | Meth (m::l) -> string_of_mthd m ^ string_of_attr_or_method l
+  *)
+let string_of_attr_or_method = function
   | Attr a -> string_of_attr a
-  | Meth m -> string_of_meth m
+  | Meth m -> string_of_mthd m
+  
+let rec string_of_attrs_or_methods = function 
+  [] -> ""
+  | a::l -> (string_of_attr_or_method a) ^ (string_of_attrs_or_methods l)
   
 let string_of_class_ = function
-  | Class_(s1,s2,aom) -> "class"^s1^"(extends "^s2^") { "^(string_of_attrormeth aom)^" }" 
+  | Class_(s1, aom) -> "class"^s1^" { "^(string_of_attrs_or_methods aom)^" }" 
+  | ClassWithExtends(s1,s2, aom) -> "class"^s1^"(extends "^s2^") { "^(string_of_attrs_or_methods aom)^" }" 
   
 let string_of_classorexpr = function
   | Class c -> string_of_class_ c
