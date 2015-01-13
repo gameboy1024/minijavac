@@ -1,4 +1,5 @@
 type binop =
+  | Bsemicolon
   | Badd | Bsub | Bmul | Bdiv | Bmod
   | Band | Bor
   | Bgt | Bge | Blt | Ble | Beq | Bne
@@ -31,7 +32,7 @@ type attr =
   | AttributeWithAssign of bool * string * string * expression 
 
 type mthd = 
-  | Method of bool * string * string * (param list) * (expression list)
+  | Method of bool * string * string * (param list) * expression
   
 type attr_or_method = 
   | Attr of attr 
@@ -49,55 +50,12 @@ type value =
   | Vbool of bool
   | Vint of int
 
-
-exception Unbound_variable of string
-
-let get_op_u op x = 
-  match op, x with
-  | Unot, Vbool b -> Vbool(not b)
-  | Uminus, Vint x -> Vint (-x)
-  | _ -> failwith "bug:type error not catched"
-
-let get_op_b op x y =
-  match op, x, y with
-  | Badd, Vint x, Vint y -> Vint(x + y)
-  | Bsub, Vint x, Vint y -> Vint(x - y)
-  | Bmul, Vint x, Vint y -> Vint(x * y)
-  | Bdiv, Vint x, Vint y -> Vint(x / y)
-  | Bmod, Vint x, Vint y -> Vint(x mod y)
-  | Bgt, Vint x, Vint y -> Vbool(x > y)
-  | Bge, Vint x, Vint y -> Vbool(x >= y)
-  | Blt, Vint x, Vint y -> Vbool(x < y)
-  | Ble, Vint x, Vint y -> Vbool(x >= y)
-  | Beq, Vint x, Vint y -> Vbool(x = y)
-  | Bne, Vint x, Vint y -> Vbool(x != y)
-  | Band, Vbool x, Vbool y -> Vbool(x && y)
-  | Bor, Vbool x, Vbool y -> Vbool(x || y)
-  | _ -> failwith "bug:type error not catched"
-
-let string_type_of_value = function
-  | Vbool _ -> "bool"
-  | Vint _  -> "int"
-
-let string_type_of_op_b = function
-  | Badd | Bsub | Bmul | Bdiv | Bmod | Bgt
-  | Bge | Blt | Ble | Beq | Bne -> "int"
-  | Band | Bor  -> "bool"
-
-let string_type_of_op_u = function
-  | Uminus -> "int"
-  | Unot   -> "bool"
-
-let string_of_value = function
-  | Vbool true -> "true"
-  | Vbool false -> "false"
-  | Vint i -> string_of_int i
-
 let string_of_op_u = function
   | Unot -> "not "
   | Uminus -> "-"
 
 let string_of_op_b = function
+  | Bsemicolon -> "; "
   | Badd -> " + "
   | Bsub -> " - "
   | Bmul -> " * "
@@ -150,7 +108,7 @@ let string_of_attr = function
   | AttributeWithAssign(static, t,id,e) -> "AttributeWithAssign("^string_of_static_bool static ^ " " ^t^" "^id^" = "^(string_of_expr e)^")"
   
 let string_of_mthd = function
-  | Method(static,s1,s2,p,e) -> "Method("^string_of_static_bool static^ " "  ^s1^" "^s2^"(Params("^(string_of_params p)^")) {"^(string_of_exprs e)^"})"
+  | Method(static,s1,s2,p,e) -> "Method("^string_of_static_bool static^ " "  ^s1^" "^s2^"(Params("^(string_of_params p)^")) {"^(string_of_expr e)^"})"
 
 let string_of_attr_or_method = function
   | Attr a -> string_of_attr a

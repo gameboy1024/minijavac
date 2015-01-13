@@ -37,7 +37,10 @@
 /********************************/
 /* Priorities and associativity */
 /********************************/
+
+%left SEMICOLON
 %nonassoc IN
+%right ASSIGN
 %left OR
 %left AND
 %left EQ NE
@@ -78,35 +81,35 @@ class_body:
       { ClassWithExtends(t, st, a) }
 
 attributes_or_methods:
-  |   { [] }
+  | comment*  { [] }
   | a=attribute_or_method  rest=attribute_or_method*
       { a :: rest }
 
 attribute_or_method:    
-  | comment* a=attribute
+  | comment* a=attribute SEMICOLON
       { Attr(a) }
   | comment* m=method_
       { Meth(m) }
 
 attribute:
-  | STATIC t=TYPE id=VAR SEMICOLON
+  | STATIC t=TYPE id=VAR
       { Attribute(true, t, id) }
-  | t=TYPE id=VAR SEMICOLON
+  | t=TYPE id=VAR
       { Attribute(false, t, id) }
-  | STATIC t=TYPE id=VAR ASSIGN e=expr SEMICOLON
+  | STATIC t=TYPE id=VAR ASSIGN e=expr
       { AttributeWithAssign(true, t, id, e) }
-  | t=TYPE id=VAR ASSIGN e=expr SEMICOLON
+  | t=TYPE id=VAR ASSIGN e=expr
       { AttributeWithAssign(false, t, id, e) }
 
 method_:
   // Four cases: static or not and with params or not
-  | STATIC t=TYPE id=VAR LPAREN p=params RPAREN LBRACE e=expr* RBRACE
+  | STATIC t=TYPE id=VAR LPAREN p=params RPAREN LBRACE e=expr RBRACE
       { Method(true, t, id, p, e) }
-  | STATIC t=TYPE id=VAR LPAREN RPAREN LBRACE e=expr* RBRACE
+  | STATIC t=TYPE id=VAR LPAREN RPAREN LBRACE e=expr RBRACE
       { Method(true, t, id, [], e) }
-  | t=TYPE id=VAR LPAREN p=params RPAREN LBRACE e=expr* RBRACE
+  | t=TYPE id=VAR LPAREN p=params RPAREN LBRACE e=expr RBRACE
       { Method(false, t, id, p, e) }
-  | t=TYPE id=VAR LPAREN RPAREN LBRACE e=expr* RBRACE
+  | t=TYPE id=VAR LPAREN RPAREN LBRACE e=expr RBRACE
       { Method(false, t, id, [], e) }
 
 param:
@@ -167,6 +170,7 @@ args:
 
 
 %inline bop:
+  | SEMICOLON { Bsemicolon }
   | PLUS      { Badd }
   | MINUS     { Bsub }
   | MULTI     { Bmul }

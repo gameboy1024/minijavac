@@ -6,13 +6,13 @@ class Factorial{
 
 class Fac {
     Int computeFac(Int num){
-        int num_aux
+        num_aux = new Int;
         if (num < 1) {
             num_aux = 1
         } else {
             num_aux = num * (this.computeFac(num-1))
-        }
-        num_aux
+        };
+        asdf
     }
 }
 
