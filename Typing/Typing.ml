@@ -1,6 +1,5 @@
 open AST
 open TypeError
-open Env
 open Type
 
 (* Return true if one class is the subtype of another class *)
@@ -62,17 +61,19 @@ and check_expr e env = match e.edesc with
       end
 
     | If (e0, e1, e2) ->
-      check_expr e0 env;
-      begin match e0.etype with 
-        | Some t -> if ( (stringOf t) <> "Boolean") then incorrect_type "Boolean" (stringOf t) e.eloc;
-        | None -> typing_error e.eloc
-      end;
-      check_expr e1 env;
-      begin match e2 with
-        | Some e2_ -> check_expr e2_ env;
-        | None ->  ()
-      end;
-      e.etype <- e1.etype
+      begin
+        check_expr e0 env;
+        begin match e0.etype with 
+          | Some t -> if ( (stringOf t) <> "Boolean") then incorrect_type "Boolean" (stringOf t) e.eloc;
+          | None -> typing_error e.eloc
+        end;
+        check_expr e1 env;
+        begin match e2 with
+          | Some e2_ -> check_expr e2_ env;
+          | None ->  ()
+        end;
+        e.etype <- e1.etype
+      end
 
     | Val v -> 
       begin match v with
@@ -104,22 +105,24 @@ and check_expr e env = match e.edesc with
       end
 
     | Define (var_name,var_type,e0,e1) ->
-      if (not(isClass env var_type)) then unknown_type var_type e.eloc;
+      let var_type_string = Type.stringOf (Located.elem_of var_type) in 
+      if (not(isClass env var_type_string)) then unknown_type var_type_string e.eloc;
       check_expr e0 env;
       begin match e0.etype with
         | Some expr_type ->
-          if (not (isSubtypeOf env (fromString var_type) expr_type)) 
-          then not_subtype (stringOf expr_type) var_type e.eloc
+          if (not (isSubtypeOf env (fromString var_type_string) expr_type)) 
+          then not_subtype (stringOf expr_type) var_type_string e.eloc
         | None -> typing_error e.eloc
       end;
       (* New variable with the same name hide the old ones *)
-      let new_env = addVar env var_name (fromString var_type) in
+      let new_env = addVar env var_name (fromString (Type.stringOf (Located.elem_of var_type))) in
       check_expr e1 new_env;
       e.etype <- e1.etype
 
     | Cast (t,e0) -> 
-      if (not(isClass env t)) then unknown_type t e.eloc;
-      let new_t = (fromString t) in
+      let t_string = Type.stringOf (Located.elem_of t) in
+      if (not(isClass env t_string)) then unknown_type t_string e.eloc;
+      let new_t = (fromString t_string) in
       check_expr e0 env;
       begin match e0.etype with
         | Some expr_type -> 
@@ -130,7 +133,8 @@ and check_expr e env = match e.edesc with
       end
 
     | Instanceof (e0,t) -> 
-      if (not(isClass env t)) then unknown_type t e.eloc;
+      let t_string = Type.stringOf (Located.elem_of t) in
+      if (not(isClass env t_string)) then unknown_type t_string e.eloc;
       check_expr e0 env;
       e.etype <- Some (fromString "Boolean")
 
@@ -143,13 +147,14 @@ let rec find_types type_asts env =
 
 (* Vérifie que le parent d'une classe est correct *)
 let check_super c env =
-  let c_supertype = (fromString c.cparent) in
+  let cparent_string = Type.stringOf (Located.elem_of c.cparent) in
+  let c_supertype = (fromString cparent_string) in
   let c_type = (fromString c.cname) in
-  if not (isClass env c.cparent)
-  then unknown_type c.cparent c.cloc;
+  if not (isClass env cparent_string)
+  then unknown_type cparent_string c.cloc;
   if (isSubtypeOf env c_type c_supertype)
-  then inheritance_cycle (c.cname) (c.cparent) c.cloc;
-  setSuper env c.cname c.cparent
+  then inheritance_cycle (c.cname) cparent_string c.cloc;
+  setSuper env c.cname cparent_string
 
 (* Verifie les arguments d'une fonction *)
 let rec check_args loc f args env =
@@ -176,9 +181,10 @@ let rec check_funs c funs env =
   match funs with 
     | [] -> env
     | f1::others -> 
-      if not (isClass env f1.mreturntype)
-      then unknown_type f1.mreturntype f1.mloc;
-      let f = {fargs=[]; freturn = (fromString f1.mreturntype)} in
+      let mreturntype_string = Type.stringOf (Located.elem_of f1.mreturntype) in
+      if not (isClass env mreturntype_string)
+      then unknown_type mreturntype_string f1.mloc;
+      let f = {fargs=[]; freturn = (fromString mreturntype_string)} in
       let f_wargs = check_args f1.mloc f f1.margstype env in
       try let new_env = addFun env c f1.mname f_wargs in
           (* On ne peut pas verifier ici si c'est une redefinition 
@@ -268,7 +274,7 @@ let check_classes t_ast env =
 (* Check and generate class environments *)
 let typing (classes, exprs) =
   let env = check_classes classes (Env.init()) in
-  (* Then check top level expressions *)
-  match exprs with
-    | Some expr -> check_expr expr env;
-    | None -> ()
+    (* Then check top level expressions *)
+    match exprs with
+      | Some expr -> check_expr expr env;
+      | None -> ()

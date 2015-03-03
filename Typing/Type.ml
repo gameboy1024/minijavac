@@ -115,7 +115,7 @@ let isVar env v =
 	with Not_found -> false
 
 (* Find class in a specific environment *)
-let findClass env = Hashtbl.find (env.env_c)
+let findClass env c = Hashtbl.find env.env_c c
 
 (* Check a class in a specific environment *)
 let isClass env c =

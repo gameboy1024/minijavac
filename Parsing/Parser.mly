@@ -165,8 +165,12 @@ expression:
       { mkexp (Seq($1,$3)) $startpos $endpos }
   | MINUS expression %prec UMINUS
       { mkexp (Call($2,"neg",[])) $startpos $endpos }
-  | IF LPAREN expression RPAREN expression ELSE expression %prec IFP
-      { mkexp (If($3, $5, $7)) $startpos $endpos }
+  /* In version 2, the else can be omitted. */
+  | IF LPAREN expression RPAREN expression else_cond %prec IFP
+      { match $6 with
+        | Some e -> mkexp (If($3, $5, Some e)) $startpos $endpos 
+        | None -> mkexp (If($3, $5, None)) $startpos $endpos 
+      }
   | LIDENT EQUAL expression
       { mkexp (Assign($1,$3)) $startpos $endpos }
   | UIDENT LIDENT EQUAL e1=expression IN LBRACE e2=expression RBRACE
@@ -199,6 +203,12 @@ expression:
       { mkval $1 $startpos $endpos }
   | LPAREN expression RPAREN
       { $2 }
+
+else_cond:
+  | ELSE expression 
+      { Some $2 }
+  | /* nothing */
+      { None }
 
 %inline binop:
   | MINUS      { "sub" }

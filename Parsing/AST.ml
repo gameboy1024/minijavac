@@ -10,7 +10,8 @@ type expression_desc =
   | New of Type.t Located.t
   | Seq of expression * expression
   | Call of expression * string * expression list
-  | If of expression * expression * expression
+  (* In version 2 the else can be omitted. *)
+  | If of expression * expression * expression option
   | Val of value
   | Var of string
   | Assign of string * expression
@@ -64,9 +65,11 @@ let rec string_of_expression_desc = function
       "new "^(Type.stringOf (Located.elem_of t))
   | Seq(e1,e2) -> 
       (string_of_expression e1)^" ; "^(string_of_expression e2)
-  | If(c,e1,e2) -> 
+  | If(c,e1,Some e2) -> 
       "if "^(string_of_expression c)^" { "^
       (string_of_expression e1)^" } else { "^(string_of_expression e2)^" }"
+  | If(c,e1,None) -> 
+      "if "^(string_of_expression c)^" { "^(string_of_expression e1)^" }"
   | Call(r,m,al) -> 
       (string_of_expression r)^
       "."^m^"("^
