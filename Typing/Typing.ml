@@ -6,14 +6,14 @@ open Type
 (* Return true if one class is the subtype of another class *)
 let rec isSubtypeOf env class_parent class_child =
   if (class_parent = class_child)
-  	then true
+    then true
   else 
     begin
-    if (class_child = (fromString "Object"))
-    then false
-    else
-      let class_child_env = (findClass env (stringOf class_child)) in
-      	isSubtypeOf env class_parent (getSuper class_child_env)
+      if (class_child = (fromString "Object"))
+      then false
+      else
+        let class_child_env = (findClass env (stringOf class_child)) in
+          isSubtypeOf env class_parent (getSuper class_child_env)
     end
 
 (* Verifie la correspondance de typage entre une liste d'expressions et une liste d'arguments *)
@@ -25,18 +25,18 @@ let rec match_exprlist_args loc lex args env =
     | (e::l1, (atype,_)::l2) -> 
       check_expr e env;
       match e.etype with
-	| Some te ->
-	  if ( isSubtypeOf env atype te )
-	  then match_exprlist_args loc l1 l2 env
-	  else not_subtype (stringOf te) (stringOf atype) loc
-	| None -> typing_error loc
+    | Some te ->
+      if ( isSubtypeOf env atype te )
+      then match_exprlist_args loc l1 l2 env
+      else not_subtype (stringOf te) (stringOf atype) loc
+    | None -> typing_error loc
 
 (* Typage d'une expression 
 Pour chaque expression, on commence par typer les sous-expressions pour typer l'expression résultante *)
 and check_expr e env = match e.edesc with 
     | New s -> 
       if (not (isClass env (Type.stringOf (Located.elem_of s)))) 
-      	then unknown_type (Type.stringOf (Located.elem_of s)) e.eloc;
+        then unknown_type (Type.stringOf (Located.elem_of s)) e.eloc;
       e.etype <- Some (fromString (Type.stringOf (Located.elem_of s)))
 
     | Seq (e1,e2) -> 
@@ -47,70 +47,70 @@ and check_expr e env = match e.edesc with
     | Call (e0,fname,args) -> 
       check_expr e0 env;
       begin match e0.etype with 
-		| Some t -> 
-		  begin 
-		    try
-		      let f = (findFun_rec env (stringOf t) fname) in
-		      let frt_n = (stringOf f.freturn) in
-		      if not (isClass env frt_n) then unknown_type frt_n e.eloc;
-		      match_exprlist_args e.eloc args f.fargs env;
-		      e.etype <- Some f.freturn
-		    with 
-			Not_found -> unknown_meth fname (stringOf t) e.eloc
-		  end
-		| None -> typing_error e.eloc
+        | Some t -> 
+          begin 
+            try
+              let f = (findFun_rec env (stringOf t) fname) in
+              let frt_n = (stringOf f.freturn) in
+              if not (isClass env frt_n) then unknown_type frt_n e.eloc;
+              match_exprlist_args e.eloc args f.fargs env;
+              e.etype <- Some f.freturn
+            with 
+              Not_found -> unknown_meth fname (stringOf t) e.eloc
+          end
+        | None -> typing_error e.eloc
       end
 
     | If (e0, e1, e2) ->
       check_expr e0 env;
       begin match e0.etype with 
-		| Some t -> if ( (stringOf t) <> "Boolean") then incorrect_type "Boolean" (stringOf t) e.eloc;
-		| None -> typing_error e.eloc
-	      end;
-	      check_expr e1 env;
-	      begin match e2 with
-		| Some e2_ -> check_expr e2_ env;
-		| None ->  ()
+        | Some t -> if ( (stringOf t) <> "Boolean") then incorrect_type "Boolean" (stringOf t) e.eloc;
+        | None -> typing_error e.eloc
+      end;
+      check_expr e1 env;
+      begin match e2 with
+        | Some e2_ -> check_expr e2_ env;
+        | None ->  ()
       end;
       e.etype <- e1.etype
 
     | Val v -> 
       begin match v with
-		| String s -> e.etype <- Some (fromString "String")
-		| Int i -> e.etype <- Some (fromString "Int")
-		| Boolean b -> e.etype <- Some (fromString "Boolean")
-		| Null -> e.etype <- Some (fromString "Null")
+        | String s -> e.etype <- Some (fromString "String")
+        | Int i -> e.etype <- Some (fromString "Int")
+        | Boolean b -> e.etype <- Some (fromString "Boolean")
+        | Null -> e.etype <- Some (fromString "Null")
       end
 
     | Var s -> 
       begin
-      try e.etype <- Some (findVar env s)
-      with Not_found -> unknown_var s e.eloc
+        try e.etype <- Some (findVar env s)
+        with Not_found -> unknown_var s e.eloc
       end
 
     (* Le type d'une assignation est Null *)
     | Assign (s,e0) -> 
       begin
-		try let var_type = (findVar env s) in
-		    check_expr e0 env;
-		    begin match e0.etype with
-		      | Some expr_type ->
-			if (not (isSubtypeOf env var_type expr_type)) 
-			then not_subtype (stringOf expr_type) (stringOf var_type) e.eloc
-	                else e.etype <- Some (fromString "Null")
-		      | None -> typing_error e.eloc
-		    end
-		with Not_found -> unknown_var s e.eloc
+        try let var_type = (findVar env s) in
+            check_expr e0 env;
+            begin match e0.etype with
+              | Some expr_type ->
+          if (not (isSubtypeOf env var_type expr_type)) 
+          then not_subtype (stringOf expr_type) (stringOf var_type) e.eloc
+                      else e.etype <- Some (fromString "Null")
+              | None -> typing_error e.eloc
+            end
+        with Not_found -> unknown_var s e.eloc
       end
 
     | Define (var_name,var_type,e0,e1) ->
       if (not(isClass env var_type)) then unknown_type var_type e.eloc;
       check_expr e0 env;
       begin match e0.etype with
-		| Some expr_type ->
-		  if (not (isSubtypeOf env (fromString var_type) expr_type)) 
-		  then not_subtype (stringOf expr_type) var_type e.eloc
-		| None -> typing_error e.eloc
+        | Some expr_type ->
+          if (not (isSubtypeOf env (fromString var_type) expr_type)) 
+          then not_subtype (stringOf expr_type) var_type e.eloc
+        | None -> typing_error e.eloc
       end;
       (* New variable with the same name hide the old ones *)
       let new_env = addVar env var_name (fromString var_type) in
@@ -122,11 +122,11 @@ and check_expr e env = match e.edesc with
       let new_t = (fromString t) in
       check_expr e0 env;
       begin match e0.etype with
-	| Some expr_type -> 
-	  if ( ( isSubtypeOf env new_t expr_type) || ( isSubtypeOf env expr_type new_t ) )
-	  then e.etype <- Some new_t
-	  else not_castable (stringOf expr_type) (stringOf new_t) e.eloc
-	| None -> typing_error e.eloc
+        | Some expr_type -> 
+          if ( ( isSubtypeOf env new_t expr_type) || ( isSubtypeOf env expr_type new_t ) )
+          then e.etype <- Some new_t
+          else not_castable (stringOf expr_type) (stringOf new_t) e.eloc
+        | None -> typing_error e.eloc
       end
 
     | Instanceof (e0,t) -> 
@@ -184,7 +184,7 @@ let rec check_funs c funs env =
           (* On ne peut pas verifier ici si c'est une redefinition 
              car on n'a pas forcement déjà analysé les fonctions
              de la classe parent. *)
-	  check_funs c others new_env
+    check_funs c others new_env
       with MethodAlreadyPresent(s) -> method_clash f1.mname f1.mloc
   
 (* Verifie l'interface des classes *)
@@ -192,8 +192,8 @@ let rec analyse_types type_asts env =
   match type_asts with
     | [] -> env
     | c1::others -> let super_env = check_super c1 env in
-		    let meth_env = check_funs c1.cname c1.cmethods super_env in
-		    analyse_types others meth_env
+        let meth_env = check_funs c1.cname c1.cmethods super_env in
+        analyse_types others meth_env
 
 (* Vérifie la déclaration des attributs d'une classe *)
 let rec check_attributes c attrs env =
@@ -254,15 +254,15 @@ let rec check_class t_ast env =
     | [] -> env
     | c::others -> 
       let attr_env = check_attributes c.cname c.cattributes env in
-	      check_methods c.cname c.cmethods attr_env;
-	      check_class others env;
-	      env
+        check_methods c.cname c.cmethods attr_env;
+        check_class others env;
+        env
 
 (* Check the classes *)
 let check_classes t_ast env = 
   let env_with_type = find_types t_ast env in
-	  let env_with_type_itf = analyse_types t_ast env_with_type in
-	  	check_class t_ast env_with_type_itf
+    let env_with_type_itf = analyse_types t_ast env_with_type in
+      check_class t_ast env_with_type_itf
 
 
 (* Check and generate class environments *)
