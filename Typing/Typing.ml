@@ -1,5 +1,8 @@
 open AST
+<<<<<<< HEAD
 open Error
+=======
+>>>>>>> 316460c2c58799f441b059ebe2e725406fc32197
 open TypeError
 open Type
 
@@ -13,9 +16,15 @@ let rec isSubtypeOf env class_parent class_child =
       then false
       else
         let class_child_env = (findClass env (stringOf class_child)) in
+<<<<<<< HEAD
           isSubtypeOf env class_parent (getParent class_child_env)
     end
   
+=======
+          isSubtypeOf env class_parent (getSuper class_child_env)
+    end
+
+>>>>>>> 316460c2c58799f441b059ebe2e725406fc32197
 (* Verifie la correspondance de typage entre une liste d'expressions et une liste d'arguments *)
 let rec match_exprlist_args loc lex args env =
   match (lex, args) with
@@ -50,7 +59,11 @@ and check_expr e env = match e.edesc with
         | Some t -> 
           begin 
             try
+<<<<<<< HEAD
               let f = (findMethod_rec env (stringOf t) fname) in
+=======
+              let f = (findFun_rec env (stringOf t) fname) in
+>>>>>>> 316460c2c58799f441b059ebe2e725406fc32197
               let frt_n = (stringOf f.freturn) in
               if not (isClass env frt_n) then unknown_type frt_n e.eloc;
               match_exprlist_args e.eloc args f.fargs env;
@@ -144,7 +157,11 @@ let rec find_types type_asts env =
   match type_asts with
     | [] -> env
     | c1::others -> try find_types others (addClass env c1.cname)
+<<<<<<< HEAD
       with ClassAlreadyExists _ -> type_clash c1.cname c1.cloc
+=======
+      with ClassAlreadyPresent _ -> type_clash c1.cname c1.cloc
+>>>>>>> 316460c2c58799f441b059ebe2e725406fc32197
 
 (* Vérifie que le parent d'une classe est correct *)
 let check_super c env =
@@ -155,17 +172,27 @@ let check_super c env =
   then unknown_type cparent_string c.cloc;
   if (isSubtypeOf env c_type c_supertype)
   then inheritance_cycle (c.cname) cparent_string c.cloc;
+<<<<<<< HEAD
   setParent env c.cname cparent_string
+=======
+  setSuper env c.cname cparent_string
+>>>>>>> 316460c2c58799f441b059ebe2e725406fc32197
 
 (* Verifie les arguments d'une fonction *)
 let rec check_args loc f args env =
   match args with
     | [] -> f
     | ( aname, atype )::l -> 
+<<<<<<< HEAD
       let atype_string = Type.stringOf (Located.elem_of atype) in
       if not (isClass env atype_string)
       then unknown_type atype_string loc;
       let this_arg = ((fromString atype_string), aname) in
+=======
+      if not (isClass env atype)
+      then unknown_type atype loc;
+      let this_arg = ((fromString atype), aname) in
+>>>>>>> 316460c2c58799f441b059ebe2e725406fc32197
       let new_args = this_arg::f.fargs in
       let new_f = { fargs = new_args ; freturn = f.freturn} in
       check_args loc new_f l env
@@ -188,12 +215,20 @@ let rec check_funs c funs env =
       then unknown_type mreturntype_string f1.mloc;
       let f = {fargs=[]; freturn = (fromString mreturntype_string)} in
       let f_wargs = check_args f1.mloc f f1.margstype env in
+<<<<<<< HEAD
       try let new_env = addMethod env c f1.mname f_wargs in
+=======
+      try let new_env = addFun env c f1.mname f_wargs in
+>>>>>>> 316460c2c58799f441b059ebe2e725406fc32197
           (* On ne peut pas verifier ici si c'est une redefinition 
              car on n'a pas forcement déjà analysé les fonctions
              de la classe parent. *)
     check_funs c others new_env
+<<<<<<< HEAD
       with MethodAlreadyExists(s) -> method_clash f1.mname f1.mloc
+=======
+      with MethodAlreadyPresent(s) -> method_clash f1.mname f1.mloc
+>>>>>>> 316460c2c58799f441b059ebe2e725406fc32197
   
 (* Verifie l'interface des classes *)
 let rec analyse_types type_asts env =
@@ -208,12 +243,20 @@ let rec check_attributes c attrs env =
   match attrs with
     | [] -> env
     | a1::others -> 
+<<<<<<< HEAD
       let atype_string = Type.stringOf (Located.elem_of a1.atype) in
       if not (isClass env atype_string)
       then unknown_type atype_string a1.aloc;
       if (isVar env a1.aname)
       then attribute_clash a1.aname a1.aloc;
       let new_env = addVar env a1.aname (fromString atype_string) in
+=======
+      if not (isClass env a1.atype)
+      then unknown_type a1.atype a1.aloc;
+      if (isVar env a1.aname)
+      then attribute_clash a1.aname a1.aloc;
+      let new_env = addVar env a1.aname (fromString a1.atype) in
+>>>>>>> 316460c2c58799f441b059ebe2e725406fc32197
       match a1.adefault with
         | None -> check_attributes c others new_env
         | Some e -> 
@@ -221,29 +264,50 @@ let rec check_attributes c attrs env =
           match e.etype with
             | None -> typing_error e.eloc
             | Some t -> 
+<<<<<<< HEAD
               if not (isSubtypeOf env (fromString atype_string) t)
               then  not_subtype (stringOf t) atype_string a1.aloc;
+=======
+              if not (isSubtypeOf env (fromString a1.atype) t)
+              then  not_subtype (stringOf t) a1.atype a1.aloc;
+>>>>>>> 316460c2c58799f441b059ebe2e725406fc32197
               check_attributes c others new_env
 
 (* Ajoute une liste de parametres à l'environnement *)
 let rec add_params params env =
   match params with 
     | [] -> env
+<<<<<<< HEAD
     | (pname,ptype)::q -> 
       let new_env = addVar env pname (Located.elem_of ptype) in
               add_params q new_env
 
 (* On verifie la definition des fonctions *)
 let rec check_methods c funs env =
+=======
+    | (pname,ptype)::q -> let new_env = addVar env pname (fromString ptype) in
+                          add_params q new_env
+
+(* On verifie la definition des fonctions *)
+let rec check_funs_def c funs env =
+>>>>>>> 316460c2c58799f441b059ebe2e725406fc32197
   match funs with 
     | [] -> ()
     | f1::others -> 
       (* Si c'est une redefinition, on verifie les arguments *)
+<<<<<<< HEAD
       let cparent = stringOf (getParent (findClass env c)) in
       if ( isMethod_rec env cparent f1.mname )
       then begin
         let fparent = findMethod_rec env cparent f1.mname in
         let fchild = findMethod env c f1.mname in
+=======
+      let cparent = stringOf (getSuper (findClass env c)) in
+      if ( isFun_rec env cparent f1.mname )
+      then begin
+        let fparent = findFun_rec env cparent f1.mname in
+        let fchild = findFun env c f1.mname in
+>>>>>>> 316460c2c58799f441b059ebe2e725406fc32197
         if not (compare_args fchild.fargs fparent.fargs)
         then method_clash f1.mname f1.mloc
       end;
@@ -254,9 +318,15 @@ let rec check_methods c funs env =
       match f1.mbody.etype with
         | None -> typing_error f1.mloc
         | Some t -> 
+<<<<<<< HEAD
           if not (isSubtypeOf env (Located.elem_of f1.mreturntype) t)
           then  not_subtype (stringOf t) (Type.stringOf (Located.elem_of f1.mreturntype)) f1.mloc;
           check_methods c others env
+=======
+          if not (isSubtypeOf env (fromString f1.mreturntype) t)
+          then  not_subtype (stringOf t) f1.mreturntype f1.mloc;
+          check_funs_def c others env
+>>>>>>> 316460c2c58799f441b059ebe2e725406fc32197
       
 (* Recursively check the classes *)
 let rec check_class t_ast env =
@@ -277,7 +347,11 @@ let check_classes t_ast env =
 
 (* Check and generate class environments *)
 let typing (classes, exprs) =
+<<<<<<< HEAD
   let env = check_classes classes (Type.init() ) in
+=======
+  let env = check_classes classes (Env.init()) in
+>>>>>>> 316460c2c58799f441b059ebe2e725406fc32197
     (* Then check top level expressions *)
     match exprs with
       | Some expr -> check_expr expr env;

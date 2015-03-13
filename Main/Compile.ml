@@ -1,5 +1,5 @@
 let execute lexbuf verbose = 
-  try 
+  try
     print_endline "Parsing started...";
     let ast = Parser.start Lexer.token lexbuf in
     print_endline "Parsing successful";

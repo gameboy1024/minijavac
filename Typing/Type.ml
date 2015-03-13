@@ -1,4 +1,3 @@
-
 exception ClassAlreadyExists of string
 exception MethodAlreadyExists of string
 
