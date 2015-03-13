@@ -1,0 +1,3 @@
+Int a = 5 in {
+    if (true) { a = 6 }
+}

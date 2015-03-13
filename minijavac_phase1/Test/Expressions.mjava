@@ -1,0 +1,41 @@
+// Start comment
+class Factorial {
+  // Attributes
+  static Int staticAttr;
+  Int attr;
+  static Int staticAttr2 = 5;
+  Int attr2 = attr;
+  // Middle comment
+  static Int test () {
+    true
+  }
+  Int test ( Int a, Boolean b ) {
+    // In-method comment
+    true;
+    a = b + 4
+    // In-method comment 2
+  }
+}
+class Factorial2 extends Factorial {
+}
+
+// Between-class comment
+(a)
+b
+5
+//"hello world"
+null
+true
+false
+this
+!true
+a + 5
+a = 3 + 5 % 2 / 3 * 4
+
+if (a) {
+ b = 1
+} else {
+ b = 2
+}
+haha
+// End comment

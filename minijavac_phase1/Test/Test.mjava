@@ -1,0 +1,18 @@
+class Factorial{
+    static Void main(String a){
+        system.out().println(new Fac.computeFac(10))
+    }
+}
+
+class Fac {
+    Int computeFac(Int num){
+        num_aux = new Int;
+        if (num < 1) {
+            num_aux = 1
+        } else {
+            num_aux = num * (this.computeFac(num-1))
+        };
+        asdf
+    }
+}
+
