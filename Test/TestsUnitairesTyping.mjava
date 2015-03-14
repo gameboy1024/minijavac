@@ -1,16 +1,21 @@
 class A {
     Int b = 6;
     Int test() {
-        b = 6
+        b = 6;
+        b
     }
 }
 
-/*
+
 class B extends A {
-
+    Int test_1() {
+        this.test()
+    }
 }
 
-Int a = 5 in {
-    if (true) { a = 6 }
+
+
+B b = new B in {
+   b.test()
 }
-*/
+

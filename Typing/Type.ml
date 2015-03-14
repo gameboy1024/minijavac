@@ -1,5 +1,6 @@
 exception ClassAlreadyExists of string
 exception MethodAlreadyExists of string
+exception AttributeAlreadyExists of string
 
 type t = string
 
@@ -7,7 +8,7 @@ let stringOf t = t
 
 let fromString t = t
 
-let default_size = 10
+let default_size = 17
 
 (* Environnement type *)
 type tEnv = {
@@ -21,8 +22,13 @@ and envClasses = (string, tClass) Hashtbl.t
 (* Class type *)
 and tClass = {
 	cparent : t;
+	cattributes : attributes;
 	cmethods : methods
 }
+(* Attributes *)
+and attributes = (string, tAttribut) Hashtbl.t
+(* Attributes type*)
+and tAttribut = t * string
 (* Methods *)
 and methods = (string, tMethod) Hashtbl.t
 (* Method type *)
@@ -40,6 +46,7 @@ and tArg = t * string
 (* Create and initialize a new class *)
 let makeClass = {
 	cparent = (fromString "Object");
+	cattributes = (Hashtbl.create default_size : attributes);
 	cmethods = (Hashtbl.create default_size : methods)
 }
 
@@ -111,9 +118,40 @@ let getParent c = c.cparent
 let setParent env classname parentname =
 	let new_env_c = Hashtbl.copy env.env_c in
 	let c = findClass env classname in
-	Hashtbl.add new_env_c classname {cparent = (fromString parentname); cmethods = c.cmethods};
+	Hashtbl.add new_env_c classname {cparent = (fromString parentname); cattributes =c.cattributes; cmethods = c.cmethods};
 	makeEnv env.env_v new_env_c
 	
+	
+(* Find variable in a specific environment *)
+let findAttr env cname a = 
+	let c = findClass env cname in
+	Hashtbl.find(c.cattributes) a
+
+(* Recursively find an attribute in class and its parent *)
+let rec findAttr_rec env cname a =
+	try
+		Hashtbl.find (Hashtbl.find(env.env_c) cname).cattributes a
+	with Not_found ->
+	if (cname = "Object")
+		then raise Not_found
+	else
+		begin
+			let c = findClass env cname in
+			findAttr_rec env (stringOf c.cparent) a
+		end
+		
+		
+(* Check a class in a specific environment *)
+let isAttribute env c a =
+	try findAttr env c a; true
+	with Not_found -> false
+
+(* Recursively check a class in a specific environment *)
+let isAttribute_rec env c a =
+	try findAttr_rec env c a; true
+	with Not_found -> false
+
+
 (* Find variable in a specific environment *)
 let findVar env v = Hashtbl.find (env.env_v) v
 
@@ -128,9 +166,9 @@ let isClass env c =
 	with Not_found -> false
 
 (* Find method in a specific environment *)
-let findMethod env cname = 
+let findMethod env cname m = 
 	let c = findClass env cname in
-	Hashtbl.find (c.cmethods)
+	Hashtbl.find (c.cmethods) m
 
 (* Recursively find a method in class and its parent *)
 let rec findMethod_rec env cname m =
@@ -168,6 +206,16 @@ let addClass env c =
 	Hashtbl.add new_c c makeClass ;
 	makeEnv env.env_v new_c
 
+(* Add attribute in a class *)
+let addAttribute env cname aname a =
+	if (isAttribute env cname aname) then raise (AttributeAlreadyExists(aname));
+	let new_env_c = Hashtbl.copy env.env_c in
+	let old_c = findClass env cname in
+	let new_attributes = Hashtbl.copy old_c.cattributes in
+	Hashtbl.add new_attributes aname a;
+	Hashtbl.add new_env_c cname {cparent = old_c.cparent; cattributes = new_attributes; cmethods = old_c.cmethods};
+	makeEnv env.env_v new_env_c
+
 (* Add method in a class*)
 let addMethod env cname mname m =
 	if (isMethod env cname mname) then raise (MethodAlreadyExists(mname));
@@ -175,5 +223,5 @@ let addMethod env cname mname m =
 	let old_c = findClass env cname in
 	let new_methods = Hashtbl.copy old_c.cmethods in
 	Hashtbl.add new_methods mname m;
-	Hashtbl.add new_env_c cname {cparent = old_c.cparent; cmethods = new_methods};
+	Hashtbl.add new_env_c cname {cparent = old_c.cparent; cattributes = old_c.cattributes; cmethods = new_methods};
 	makeEnv env.env_v new_env_c

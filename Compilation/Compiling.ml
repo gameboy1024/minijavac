@@ -2,15 +2,12 @@ open AST
 open Location
 open Located
 open Error
-open Typer
+open Typing
 
 (* Structure introduced to compile the class tree in the right order *)
-
-(* 
+  
 type 'a tree = Node of (AST.astclass * 'a tree list)
-
-
-
+(*
 let rec find_class_by_parent cl parent = match cl with
 	|[] 														-> []
 	|(t::q) when Type.stringOf(elem_of t.cparent)=parent.cname	-> t::(find_class_by_parent q parent)
@@ -33,9 +30,8 @@ let add_sons_to_leaves tree classtable count =
 	and browse_tree_l lnode count = match lnode with
 		|[] 		-> ([],count)
 		|(t::q)		-> let (n,new_count)=browse_tree t count in let (lnode,last_count)=browse_tree_l q new_count in (n::lnode,last_count)
-	in browse_tree tree count *)
-
-
+	in browse_tree tree count 
+*)
 
 (* Environment definition *)
 type comp_env =
@@ -232,23 +228,21 @@ and add_class cl env =
 		(* Method environment *)
 		Hashtbl.iter (fun x y -> Hashtbl.add env.env_m (cl.cname^"."^x) y) all_desc_meth
 	with
-		| Not_found -> 	begin
-							(* Adding current class attributes *)
-							let all_desc_att = add_attr_l cl.cattributes (Hashtbl.create 17) in
-							let all_desc_meth = add_method_l (cl.cmethods) (Hashtbl.create 17) in
+		| Not_found -> 	
+			begin
+				(* Adding current class attributes *)
+				let all_desc_att = add_attr_l cl.cattributes (Hashtbl.create 17) in
+				let all_desc_meth = add_method_l (cl.cmethods) (Hashtbl.create 17) in
 
-							(* Class descriptor *)
-							let desc_class = make_dclass (Type.stringOf(elem_of cl.cparent)) cl.cname all_desc_att all_desc_meth in
-							Hashtbl.add env.env_c cl.cname desc_class;
+				(* Class descriptor *)
+				let desc_class = make_dclass (Type.stringOf(elem_of cl.cparent)) cl.cname all_desc_att all_desc_meth in
+				Hashtbl.add env.env_c cl.cname desc_class;
 
-							(* Method environment *)
-							Hashtbl.iter (fun x y -> Hashtbl.add env.env_m (cl.cname^"."^x) y) all_desc_meth;
+				(* Method environment *)
+				Hashtbl.iter (fun x y -> Hashtbl.add env.env_m (cl.cname^"."^x) y) all_desc_meth;
 
-						end
+			end
 	
-
-	
-
 
 
 let set_var varname varval env = 
@@ -289,8 +283,6 @@ let compile cl classtree=
 		|[] 	-> ()
 		|(t::q) -> compile_tree t; compile_tree_l q
 	in compile_tree classtree;
-
-
 	(* print_class_env init_env.env_c; *)
 	(* print_method_env init_env.env_m; *)
 	init_env

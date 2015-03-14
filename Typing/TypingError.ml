@@ -11,12 +11,10 @@ type t =
   | Notenoughargs
   | IncorrectType of string * string
   | Unknownvar of string
-(* Lorsque le typeur rencontre une erreur inatendue *)
   | Typingerror
 
 exception Error of t * Location.t
 
-(* Les erreurs. *)
 let report_error = function
   | Typeclash t ->
       print_string ("Type already defined "^t^": ")
@@ -43,7 +41,7 @@ let report_error = function
   | Unknownvar a ->
       print_string ("Unknown variable " ^ a ^": ")
   | Typingerror ->
-      print_string ("An error occured while typing")
+      print_string ("An error occured while doing typing")
 
 let not_subtype t1 t2 loc =
   raise (Error(Notsubtype(t1,t2),loc))
@@ -83,4 +81,3 @@ let unknown_var a loc =
 
 let typing_error loc =
   raise (Error(Typingerror, loc))
-

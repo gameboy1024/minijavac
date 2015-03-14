@@ -11,9 +11,9 @@ let execute lexbuf verbose =
     | Parser.Error ->
       print_string "Syntax error: ";
       Location.print (Location.curr lexbuf)
-    | TypeError.Error(e,l) ->
+    | TypingError.Error(e,l) ->
       print_string "Typing error: ";
-      TypeError.report_error e;
+      TypingError.report_error e;
       Location.print l
     | Error.Error(e,l) ->
       Error.report_error e;
