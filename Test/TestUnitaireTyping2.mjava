@@ -1,0 +1,26 @@
+
+class Account {
+      Int value = 0;
+
+      Boolean deposit(Int v) {
+           if (v > 0) {
+              value = value + v
+           }
+      }
+
+      Boolean withdraw(Int v) {
+           if (v > 0) {
+              value = value - v
+           }
+      }
+
+      Int getValue() {
+          value
+      }
+}
+
+Account a = new Account in {
+        a.deposit(50) ;
+        a.withdraw(10) ;
+        a.getValue()
+}

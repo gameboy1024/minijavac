@@ -77,6 +77,10 @@ let makeClassBool () =
 	Hashtbl.add c.cmethods "or" { fargs = [(t_bool, "b")]; freturn = t_bool };
 	Hashtbl.add c.cmethods "not" { fargs = []; freturn = t_bool };
 	c
+	
+(* Definition of class Null *)
+let makeClassNull () =
+	let c = makeClass in c
 
 (* Create and initialize a new environment *)
 let makeEnv v c = {
@@ -91,6 +95,7 @@ let init () =
 	Hashtbl.add classlist.env_c "Int" (makeClassInt());
 	Hashtbl.add classlist.env_c "String" (makeClass);
 	Hashtbl.add classlist.env_c "Boolean" (makeClassBool());
+	Hashtbl.add classlist.env_c "Null" (makeClassNull());
 	classlist
 
 

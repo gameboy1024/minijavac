@@ -128,25 +128,25 @@ classBody:
   | aOml=attributeOrMethod*
     {
       List.fold_left 
-      (fun (al,ml) aOm -> 
-	match aOm with
-	  | Att a -> a::al,ml
-	  | Meth m -> al,m::ml) 
+      (fun (al,ml) aOm -> match aOm with
+    	  | Att a -> a::al,ml
+    	  | Meth m -> al,m::ml) 
       ([],[]) 
       (List.rev aOml)
     }
 
 attributeOrMethod:
-  | typ=UIDENT name=LIDENT initialization=preceded(EQUAL,expression)? 
-      {
-	let typ = Located.mk_elem (Type.fromString typ) (symbol_loc ($startpos(typ)) ($endpos(typ))) in
-	Att(mkatt name typ initialization $startpos(typ) $endpos(name))
-      }
   | typ=UIDENT name=LIDENT LPAREN args=separated_list(COMMA,argument) RPAREN LBRACE e=expression RBRACE
       {
 	let typ = Located.mk_elem (Type.fromString typ) (symbol_loc ($startpos(typ)) ($endpos(typ))) in
 	Meth(mkmeth name typ args e $startpos $endpos )
       }
+  | typ=UIDENT name=LIDENT initialization=preceded(EQUAL,expression)? SEMI
+      {
+	let typ = Located.mk_elem (Type.fromString typ) (symbol_loc ($startpos(typ)) ($endpos(typ))) in
+	Att(mkatt name typ initialization $startpos(typ) $endpos(name))
+      }
+
 
 
 argument: 

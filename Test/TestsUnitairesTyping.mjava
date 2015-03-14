@@ -1,3 +1,16 @@
+class A {
+    Int b = 6;
+    Int test() {
+        b = 6
+    }
+}
+
+/*
+class B extends A {
+
+}
+
 Int a = 5 in {
     if (true) { a = 6 }
 }
+*/
