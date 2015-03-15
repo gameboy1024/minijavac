@@ -36,16 +36,18 @@
       cloc  = symbol_loc s e;
     }
 
-  let mkatt n t d s e = 
+  let mkatt c n t d s e = 
     {
+      astatic = c;
       aname = n;
       atype = t;
       adefault = d;
       aloc  = symbol_loc s e;
     }
 
-  let mkmeth n r a b s e =
+  let mkmeth c n r a b s e =
     {
+      mstatic = c;
       mname = n;
       mreturntype = r;
       margstype = a;
@@ -75,7 +77,7 @@
 %token LPAREN RPAREN LBRACE RBRACE
 
 /* Keywords */		
-%token CLASS ELSE EXTENDS IF IN INSTANCEOF NEW THIS
+%token CLASS ELSE EXTENDS IF IN INSTANCEOF NEW THIS STATIC
 
 /* Operators */
 %token SEMI DOT COMMA EQUAL
@@ -136,18 +138,22 @@ classBody:
     }
 
 attributeOrMethod:
-  | typ=UIDENT name=LIDENT LPAREN args=separated_list(COMMA,argument) RPAREN LBRACE e=expression RBRACE
+  | static=static_opt typ=UIDENT name=LIDENT LPAREN args=separated_list(COMMA,argument) RPAREN LBRACE e=expression RBRACE
       {
 	let typ = Located.mk_elem (Type.fromString typ) (symbol_loc ($startpos(typ)) ($endpos(typ))) in
-	Meth(mkmeth name typ args e $startpos $endpos )
+	Meth(mkmeth static name typ args e $startpos $endpos )
       }
-  | typ=UIDENT name=LIDENT initialization=preceded(EQUAL,expression)? SEMI
+  | static=static_opt typ=UIDENT name=LIDENT initialization=preceded(EQUAL,expression)? SEMI
       {
 	let typ = Located.mk_elem (Type.fromString typ) (symbol_loc ($startpos(typ)) ($endpos(typ))) in
-	Att(mkatt name typ initialization $startpos(typ) $endpos(name))
+	Att(mkatt static name typ initialization $startpos(typ) $endpos(name))
       }
 
-
+static_opt:
+    | STATIC
+      { true }
+  | /* nothing */
+      { false }
 
 argument: 
   | typ=UIDENT name=LIDENT 

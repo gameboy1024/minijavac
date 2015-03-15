@@ -5,8 +5,11 @@ let execute lexbuf verbose =
     print_endline "Parsing successful";
     if verbose then AST.print_program ast;
     print_endline "Typing started...";
-    let t_ast = Typing.typing ast in
-    print_endline "Typing successful"
+    Typing.typing ast;
+    print_endline "Typing successful";
+    print_endline "Compilation started...";
+    print_endline "Compilator not programmed yet..."
+
   with 
     | Parser.Error ->
       print_string "Syntax error: ";

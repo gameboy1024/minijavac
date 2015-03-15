@@ -18,6 +18,7 @@ let _ =
      "null"	    , NULL;
      "this"         , THIS;
      "true"         , TRUE;
+     "static"       , STATIC;
    ]
 
 let ident_or_keyword id =

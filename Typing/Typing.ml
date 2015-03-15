@@ -31,6 +31,7 @@ let rec match_arglist_args loc lex args env =
           else not_subtype (stringOf te) (stringOf atype) loc
         | None -> typing_error loc
 
+(* Test expressions *)
 and check_expr e env = match e.edesc with 
     | New s -> 
       if (not (isClass env (Type.stringOf (Located.elem_of s))))
@@ -161,16 +162,16 @@ let check_parent c env =
   setParent env c.cname cparent_string
 
 (* Check argument list *)
-let rec check_args loc f args env =
+let rec check_args loc m args env =
   match args with
-    | [] -> f
+    | [] -> m
     | (aname, atype)::l -> 
       let atype_string = Type.stringOf (Located.elem_of atype) in
       if not (isClass env atype_string)
       then unknown_type atype_string loc;
       let this_arg = ((Located.elem_of atype), aname) in
-      let new_args = this_arg::f.fargs in
-      let new_f = { fargs = new_args ; freturn = f.freturn} in
+      let new_args = this_arg::m.fargs in
+      let new_f = { fargs = new_args ; freturn = m.freturn ; fstatic = m.fstatic} in
       check_args loc new_f l env
 
 (* Compare two lists of argument *)
@@ -182,18 +183,18 @@ let rec compare_args args1 args2 =
     | ((t1,_)::q1, (t2,_)::q2) -> (t1 = t2) && (compare_args q1 q2)
 
 (* Step 1: Check method definitions and add them to env *)
-let rec check_methods_def c funs env =
-  match funs with 
+let rec check_methods_def c methods env =
+  match methods with 
     | [] -> env
-    | f1::others -> 
-      let mreturntype_string = Type.stringOf (Located.elem_of f1.mreturntype) in
+    | m1::others -> 
+      let mreturntype_string = Type.stringOf (Located.elem_of m1.mreturntype) in
       if not (isClass env mreturntype_string)
-      then unknown_type mreturntype_string f1.mloc;
-      let f = {fargs=[]; freturn = (fromString mreturntype_string)} in
-      let f_wargs = check_args f1.mloc f f1.margstype env in
-      try let new_env = addMethod env c f1.mname f_wargs in
+      then unknown_type mreturntype_string m1.mloc;
+      let m = {fargs=[]; freturn = (fromString mreturntype_string); fstatic = m1.mstatic} in
+      let f_wargs = check_args m1.mloc m m1.margstype env in
+      try let new_env = addMethod env c m1.mname f_wargs in
         check_methods_def c others new_env
-      with MethodAlreadyExists(s) -> method_clash f1.mname f1.mloc
+      with MethodAlreadyExists(s) -> method_clash m1.mname m1.mloc
   
 (* Step 1: Check class definications and add them to env *)
 let rec analyse_types type_asts env =
@@ -234,29 +235,29 @@ let rec add_args params env =
               add_args q new_env
 
 (* Step 2: Check method redefinition and body *)
-let rec check_methods c funs env =
-  match funs with 
+let rec check_methods c methods env =
+  match methods with 
     | [] -> ()
-    | f1::others -> 
+    | m1::others -> 
       (* Check redifinition *)
       let cparent = stringOf (getParent (findClass env c)) in
-      if ( isMethod_rec env cparent f1.mname )
+      if ( isMethod_rec env cparent m1.mname )
       then begin
-        let fparent = findMethod_rec env cparent f1.mname in
-        let fchild = findMethod env c f1.mname in
+        let fparent = findMethod_rec env cparent m1.mname in
+        let fchild = findMethod env c m1.mname in
         if not (compare_args fchild.fargs fparent.fargs)
-        then method_clash f1.mname f1.mloc
+        then method_clash m1.mname m1.mloc
       end;
       (* Check return type *)
-      let env_with_args = add_args f1.margstype env in
+      let env_with_args = add_args m1.margstype env in
       let new_env = addVar env_with_args "this" (fromString c) in
-      check_expr f1.mbody new_env;
-      match f1.mbody.etype with
-        | None -> typing_error f1.mloc
+      check_expr m1.mbody new_env;
+      match m1.mbody.etype with
+        | None -> typing_error m1.mloc
         | Some t -> 
-            if not (isSubtypeOf env (Located.elem_of f1.mreturntype) t)
+            if not (isSubtypeOf env (Located.elem_of m1.mreturntype) t)
             then
-              not_subtype (stringOf t) (Type.stringOf (Located.elem_of f1.mreturntype)) f1.mloc;
+              not_subtype (stringOf t) (Type.stringOf (Located.elem_of m1.mreturntype)) m1.mloc;
             check_methods c others env
       
 (* Step 2: Check class body *)

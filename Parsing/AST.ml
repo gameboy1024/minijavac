@@ -28,6 +28,7 @@ and expression =
 
 type astattribute =
     {
+      astatic : bool;
       aname : string;
       atype : Type.t Located.t;
       adefault : expression option;
@@ -36,6 +37,7 @@ type astattribute =
 
 type astmethod =
     {
+      mstatic : bool;
       mname : string;
       mreturntype : Type.t Located.t;
       margstype : argument list;
@@ -95,14 +97,14 @@ and string_of_expression e =
 
 let print_attribute a =
   print_string "  ";
-  print_string ((Type.stringOf (Located.elem_of a.atype))^" "^a.aname);
+  print_string((string_of_bool a.astatic)^" "^(Type.stringOf (Located.elem_of a.atype))^" "^a.aname);
   match a.adefault with
     | None -> print_newline ()
     | Some e -> print_endline(" = "^(string_of_expression e))
 
 let print_method m =
   print_string "  ";
-  print_string((Type.stringOf (Located.elem_of m.mreturntype))^" "^m.mname^"(");
+  print_string((string_of_bool m.mstatic)^" "^(Type.stringOf (Located.elem_of m.mreturntype))^" "^m.mname^"(");
   print_string(String.concat 
 		  "," 
 		  (List.map (fun (n,t) -> (Type.stringOf (Located.elem_of t))^" "^n) m.margstype)

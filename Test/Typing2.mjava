@@ -1,17 +1,20 @@
-
 class Account {
       Int value = 0;
 
       Boolean deposit(Int v) {
            if (v > 0) {
-              value = value + v
-           }
+              value = value + v;
+              true
+           };
+           false
       }
 
       Boolean withdraw(Int v) {
            if (v > 0) {
-              value = value - v
-           }
+              value = value - v;
+              true
+           };
+           false
       }
 
       Int getValue() {

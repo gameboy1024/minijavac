@@ -34,7 +34,8 @@ and methods = (string, tMethod) Hashtbl.t
 (* Method type *)
 and tMethod = {
 	fargs : tArg list;
-	freturn : t
+	freturn : t;
+	fstatic : bool;
 }
 (* Method argument type*)
 and tArg = t * string
@@ -55,8 +56,8 @@ let makeClassObject () =
 	let c = makeClass in
 	let t_obj = (fromString "Object") in
 	let t_bool = (fromString "Boolean") in
-	Hashtbl.add c.cmethods "eq" { fargs = [(t_obj, "o")]; freturn = t_bool };
-	Hashtbl.add c.cmethods "neq" { fargs = [(t_obj, "o")]; freturn = t_bool };
+	Hashtbl.add c.cmethods "eq" { fargs = [(t_obj, "o")]; freturn = t_bool; fstatic = false };
+	Hashtbl.add c.cmethods "neq" { fargs = [(t_obj, "o")]; freturn = t_bool; fstatic = false };
 	c
 
 (* Definition of class Int *)
@@ -64,25 +65,25 @@ let makeClassInt () =
 	let c = makeClass in
 	let t_int = (fromString "Int") in
 	let t_bool = (fromString "Boolean") in
-	Hashtbl.add c.cmethods "add" { fargs = [(t_int, "n")]; freturn = t_int };
-	Hashtbl.add c.cmethods "sub" { fargs = [(t_int, "n")]; freturn = t_int };
-	Hashtbl.add c.cmethods "mul" { fargs = [(t_int, "n")]; freturn = t_int };
-	Hashtbl.add c.cmethods "div" { fargs = [(t_int, "n")]; freturn = t_int };
-	Hashtbl.add c.cmethods "mod" { fargs = [(t_int, "n")]; freturn = t_int };
-	Hashtbl.add c.cmethods "neg" { fargs = []; freturn = t_int };
-	Hashtbl.add c.cmethods "gt" { fargs = [(t_int, "n")]; freturn = t_bool };
-	Hashtbl.add c.cmethods "ge" { fargs = [(t_int, "n")]; freturn = t_bool };
-	Hashtbl.add c.cmethods "lt" { fargs = [(t_int, "n")]; freturn = t_bool };
-	Hashtbl.add c.cmethods "le" { fargs = [(t_int, "n")]; freturn = t_bool };
+	Hashtbl.add c.cmethods "add" { fargs = [(t_int, "n")]; freturn = t_int; fstatic = false };
+	Hashtbl.add c.cmethods "sub" { fargs = [(t_int, "n")]; freturn = t_int; fstatic = false };
+	Hashtbl.add c.cmethods "mul" { fargs = [(t_int, "n")]; freturn = t_int; fstatic = false };
+	Hashtbl.add c.cmethods "div" { fargs = [(t_int, "n")]; freturn = t_int; fstatic = false };
+	Hashtbl.add c.cmethods "mod" { fargs = [(t_int, "n")]; freturn = t_int; fstatic = false };
+	Hashtbl.add c.cmethods "neg" { fargs = []; freturn = t_int; fstatic = false };
+	Hashtbl.add c.cmethods "gt" { fargs = [(t_int, "n")]; freturn = t_bool; fstatic = false };
+	Hashtbl.add c.cmethods "ge" { fargs = [(t_int, "n")]; freturn = t_bool; fstatic = false };
+	Hashtbl.add c.cmethods "lt" { fargs = [(t_int, "n")]; freturn = t_bool; fstatic = false };
+	Hashtbl.add c.cmethods "le" { fargs = [(t_int, "n")]; freturn = t_bool; fstatic = false };
 	c
 
 (* Definition of class Bool *)
 let makeClassBool () =
 	let c = makeClass in
 	let t_bool = (fromString "Boolean") in
-	Hashtbl.add c.cmethods "and" { fargs = [(t_bool, "b")]; freturn = t_bool };
-	Hashtbl.add c.cmethods "or" { fargs = [(t_bool, "b")]; freturn = t_bool };
-	Hashtbl.add c.cmethods "not" { fargs = []; freturn = t_bool };
+	Hashtbl.add c.cmethods "and" { fargs = [(t_bool, "b")]; freturn = t_bool; fstatic = false };
+	Hashtbl.add c.cmethods "or" { fargs = [(t_bool, "b")]; freturn = t_bool; fstatic = false };
+	Hashtbl.add c.cmethods "not" { fargs = []; freturn = t_bool; fstatic = false };
 	c
 	
 (* Definition of class Null *)
@@ -120,37 +121,6 @@ let setParent env classname parentname =
 	let c = findClass env classname in
 	Hashtbl.add new_env_c classname {cparent = (fromString parentname); cattributes =c.cattributes; cmethods = c.cmethods};
 	makeEnv env.env_v new_env_c
-	
-	
-(* Find variable in a specific environment *)
-let findAttr env cname a = 
-	let c = findClass env cname in
-	Hashtbl.find(c.cattributes) a
-
-(* Recursively find an attribute in class and its parent *)
-let rec findAttr_rec env cname a =
-	try
-		Hashtbl.find (Hashtbl.find(env.env_c) cname).cattributes a
-	with Not_found ->
-	if (cname = "Object")
-		then raise Not_found
-	else
-		begin
-			let c = findClass env cname in
-			findAttr_rec env (stringOf c.cparent) a
-		end
-		
-		
-(* Check a class in a specific environment *)
-let isAttribute env c a =
-	try findAttr env c a; true
-	with Not_found -> false
-
-(* Recursively check a class in a specific environment *)
-let isAttribute_rec env c a =
-	try findAttr_rec env c a; true
-	with Not_found -> false
-
 
 (* Find variable in a specific environment *)
 let findVar env v = Hashtbl.find (env.env_v) v
@@ -205,16 +175,6 @@ let addClass env c =
 	let new_c = Hashtbl.copy env.env_c in
 	Hashtbl.add new_c c makeClass ;
 	makeEnv env.env_v new_c
-
-(* Add attribute in a class *)
-let addAttribute env cname aname a =
-	if (isAttribute env cname aname) then raise (AttributeAlreadyExists(aname));
-	let new_env_c = Hashtbl.copy env.env_c in
-	let old_c = findClass env cname in
-	let new_attributes = Hashtbl.copy old_c.cattributes in
-	Hashtbl.add new_attributes aname a;
-	Hashtbl.add new_env_c cname {cparent = old_c.cparent; cattributes = new_attributes; cmethods = old_c.cmethods};
-	makeEnv env.env_v new_env_c
 
 (* Add method in a class*)
 let addMethod env cname mname m =

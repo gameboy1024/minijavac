@@ -11,7 +11,7 @@ type envClasses
 type tEnv
 type tClass
 type tArg = t * string
-type tMethod = { fargs : tArg list ; freturn : t }
+type tMethod = { fargs : tArg list ; freturn : t ; fstatic : bool }
 val makeEnv : envVariables -> envClasses -> tEnv
 val init : unit -> tEnv
 
